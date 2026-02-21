@@ -4,9 +4,10 @@ namespace App\Models;
 use App\Enums\TripStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Trip extends Model {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = ['trip_number', 'vehicle_id', 'driver_id', 'route_id', 'status', 'scheduled_at', 'started_at', 'completed_at', 'current_lat', 'current_lng', 'notes'];
     protected $casts = [

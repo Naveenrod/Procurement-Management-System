@@ -20,7 +20,11 @@ class PackingController extends Controller
 
     public function pack(Request $request, WarehouseOrder $order): RedirectResponse
     {
-        $this->warehouseService->processPacking($order, $request->all());
+        try {
+            $this->warehouseService->processPacking($order);
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
         return redirect()->route('warehouse.packing.index')->with('success', 'Order packed.');
     }
 }

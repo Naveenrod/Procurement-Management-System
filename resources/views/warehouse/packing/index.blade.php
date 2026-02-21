@@ -14,7 +14,7 @@
                         <td class="px-4 py-3">{{ optional($order->warehouse)->name }}</td>
                         <td class="px-4 py-3">{{ $order->items->count() }} items</td>
                         <td class="px-4 py-3">
-                            <form method="POST" action="{{ route('warehouse.packing.pack', $order) }}">@csrf
+                            <form method="POST" action="{{ route('warehouse.packing.process', $order) }}">@csrf
                                 <button class="px-3 py-1.5 bg-orange-500 text-white text-xs rounded-md">Pack</button>
                             </form>
                         </td>

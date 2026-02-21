@@ -4,9 +4,10 @@ namespace App\Models;
 use App\Enums\ShipmentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Shipment extends Model {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = ['tracking_number', 'purchase_order_id', 'carrier', 'status', 'shipped_at', 'estimated_arrival', 'delivered_at', 'notes'];
     protected $casts = [

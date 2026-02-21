@@ -4,9 +4,10 @@ namespace App\Models;
 use App\Enums\VehicleStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vehicle extends Model {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = ['registration_number', 'make', 'model', 'year', 'type', 'status', 'mileage', 'fuel_type', 'insurance_expiry', 'registration_expiry'];
     protected $casts = [

@@ -31,8 +31,10 @@ class WarehouseOrderController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(['warehouse_id' => 'required|exists:warehouses,id', 'type' => 'required|in:inbound,outbound,internal', 'purchase_order_id' => 'nullable|exists:purchase_orders,id', 'notes' => 'nullable|string', 'items' => 'required|array|min:1', 'items.*.product_id' => 'required|exists:products,id', 'items.*.expected_quantity' => 'required|numeric|min:1']);
-        $order = WarehouseOrder::create($validated);
-        foreach ($validated['items'] as $item) { $order->items()->create($item); }
+        $order = WarehouseOrder::create(array_merge($validated, ['status' => 'pending']));
+        foreach ($validated['items'] as $item) {
+            $order->items()->create(array_merge($item, ['status' => 'pending']));
+        }
         return redirect()->route('warehouse.orders.show', $order)->with('success', 'Warehouse order created.');
     }
 

@@ -3,9 +3,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InventoryTransaction extends Model {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = ['inventory_id', 'type', 'quantity', 'reference_type', 'reference_id', 'notes', 'created_by'];
 

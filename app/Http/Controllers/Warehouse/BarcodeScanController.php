@@ -15,7 +15,11 @@ class BarcodeScanController extends Controller
     public function scan(Request $request)
     {
         $request->validate(['barcode' => 'required|string']);
-        $result = $this->warehouseService->processBarcodeScan($request->barcode);
+        try {
+            $result = $this->warehouseService->processBarcodeScan($request->barcode);
+        } catch (\Exception $e) {
+            $result = ['message' => $e->getMessage()];
+        }
         if ($request->wantsJson()) { return response()->json($result); }
         return back()->with('scan_result', $result);
     }

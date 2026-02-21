@@ -92,5 +92,133 @@
         </script>
         @endpush
         @endif
+
+        {{-- Dashboard Charts: Spend by Vendor, Spend by Category, PO Status Distribution --}}
+        @if((isset($spendByVendor) && count($spendByVendor)) || (isset($spendByCategory) && count($spendByCategory)) || (isset($poStatusDistribution) && count($poStatusDistribution)))
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            @if(isset($spendByVendor) && count($spendByVendor))
+            <div class="bg-white rounded-lg shadow-sm border p-5">
+                <h3 class="font-semibold text-gray-800 mb-4">Spend by Vendor (Top 5)</h3>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="vendorDoughnutChart"></canvas>
+                </div>
+            </div>
+            @endif
+
+            @if(isset($spendByCategory) && count($spendByCategory))
+            <div class="bg-white rounded-lg shadow-sm border p-5">
+                <h3 class="font-semibold text-gray-800 mb-4">Spend by Category (Top 5)</h3>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="categoryDoughnutChart"></canvas>
+                </div>
+            </div>
+            @endif
+
+            @if(isset($poStatusDistribution) && count($poStatusDistribution))
+            <div class="bg-white rounded-lg shadow-sm border p-5 lg:col-span-2">
+                <h3 class="font-semibold text-gray-800 mb-4">PO Status Distribution</h3>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="poStatusChart"></canvas>
+                </div>
+            </div>
+            @endif
+        </div>
+
+        @push('scripts')
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var chartColors = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316'];
+
+            @if(isset($spendByVendor) && count($spendByVendor))
+            new Chart(document.getElementById('vendorDoughnutChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: @json(collect($spendByVendor)->pluck('name')),
+                    datasets: [{
+                        data: @json(collect($spendByVendor)->pluck('total')),
+                        backgroundColor: chartColors.slice(0, {{ count($spendByVendor) }}),
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    var total = ctx.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                    var pct = ((ctx.parsed / total) * 100).toFixed(1);
+                                    return ctx.label + ': $' + ctx.parsed.toLocaleString() + ' (' + pct + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            @endif
+
+            @if(isset($spendByCategory) && count($spendByCategory))
+            new Chart(document.getElementById('categoryDoughnutChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: @json(collect($spendByCategory)->pluck('name')),
+                    datasets: [{
+                        data: @json(collect($spendByCategory)->pluck('total')),
+                        backgroundColor: chartColors.slice(0, {{ count($spendByCategory) }}),
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    var total = ctx.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                    var pct = ((ctx.parsed / total) * 100).toFixed(1);
+                                    return ctx.label + ': $' + ctx.parsed.toLocaleString() + ' (' + pct + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            @endif
+
+            @if(isset($poStatusDistribution) && count($poStatusDistribution))
+            new Chart(document.getElementById('poStatusChart'), {
+                type: 'bar',
+                data: {
+                    labels: @json(collect($poStatusDistribution)->pluck('status')->map(fn($s) => ucwords(str_replace('_', ' ', $s)))),
+                    datasets: [{
+                        label: 'PO Count',
+                        data: @json(collect($poStatusDistribution)->pluck('count')),
+                        backgroundColor: chartColors.slice(0, {{ count($poStatusDistribution) }}),
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { precision: 0 }, grid: { display: false } },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+            @endif
+        });
+        </script>
+        @endpush
+        @endif
     </div>
 </x-app-layout>

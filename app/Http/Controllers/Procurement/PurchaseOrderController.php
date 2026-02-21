@@ -5,6 +5,8 @@ use App\Http\Controllers\Controller;
 use App\Models\PurchaseOrder;
 use App\Models\Vendor;
 use App\Models\Product;
+use App\Models\Warehouse;
+use App\Models\WarehouseOrder;
 use App\Services\ProcurementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -91,6 +93,26 @@ class PurchaseOrderController extends Controller
     public function send(PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $purchaseOrder->update(['status' => 'sent']);
+
+        // Auto-create an inbound warehouse order so the WMS receiving queue is populated
+        $warehouse = Warehouse::where('is_active', true)->first();
+        if ($warehouse && !WarehouseOrder::where('purchase_order_id', $purchaseOrder->id)->exists()) {
+            $purchaseOrder->load('items');
+            $wo = WarehouseOrder::create([
+                'warehouse_id'      => $warehouse->id,
+                'type'              => 'inbound',
+                'status'            => 'pending',
+                'purchase_order_id' => $purchaseOrder->id,
+            ]);
+            foreach ($purchaseOrder->items as $item) {
+                $wo->items()->create([
+                    'product_id'        => $item->product_id,
+                    'expected_quantity' => $item->quantity,
+                    'status'            => 'pending',
+                ]);
+            }
+        }
+
         return redirect()->route('procurement.purchase-orders.show', $purchaseOrder)->with('success', 'Purchase order sent to vendor.');
     }
 }

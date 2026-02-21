@@ -5,7 +5,7 @@
             <div>
                 <form method="GET" class="flex gap-2">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..." class="border rounded-md px-3 py-1.5 text-sm">
-                    <select name="status" class="border rounded-md px-3 py-1.5 text-sm">
+                    <select name="status" class="border rounded-md px-3 py-1.5 text-sm min-w-[10rem]">
                         <option value="">All Statuses</option>
                         @foreach(\App\Enums\RequisitionStatus::cases() as $s)
                         <option value="{{ $s->value }}" @selected(request('status') === $s->value)>{{ $s->label() }}</option>

@@ -4,9 +4,10 @@ namespace App\Models;
 use App\Enums\DriverStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Driver extends Model {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = ['employee_id', 'user_id', 'name', 'phone', 'license_number', 'license_expiry', 'status'];
     protected $casts = [

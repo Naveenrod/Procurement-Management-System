@@ -4,7 +4,7 @@
         <div class="bg-white rounded-lg shadow-sm border p-8 text-center">
             <h2 class="text-xl font-bold text-gray-800 mb-2">Barcode / QR Scanner</h2>
             <p class="text-sm text-gray-500 mb-6">Scan a barcode or enter it manually below</p>
-            <form method="POST" action="{{ route('warehouse.scan.process') }}" @submit.prevent="loading = true" class="flex gap-3 max-w-sm mx-auto">
+            <form method="POST" action="{{ route('warehouse.scan.process') }}" @submit="loading = true" class="flex gap-3 max-w-sm mx-auto">
                 @csrf
                 <input type="text" name="barcode" id="barcodeInput" autofocus placeholder="Scan or type barcode..." class="flex-1 border rounded-md px-4 py-3 text-lg font-mono tracking-wider text-center" required>
                 <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700">Scan</button>

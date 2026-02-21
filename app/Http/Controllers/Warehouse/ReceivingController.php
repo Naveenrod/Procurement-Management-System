@@ -20,7 +20,13 @@ class ReceivingController extends Controller
 
     public function receive(Request $request, WarehouseOrder $order): RedirectResponse
     {
-        $this->warehouseService->processReceiving($order, $request->all());
+        $order->load('items');
+        $items = $order->items->map(fn($item) => [
+            'warehouse_order_item_id' => $item->id,
+            'received_quantity'       => $item->expected_quantity,
+            'condition'               => 'good',
+        ])->all();
+        $this->warehouseService->processReceiving($order, $items);
         return redirect()->route('warehouse.receiving.index')->with('success', 'Order received.');
     }
 }

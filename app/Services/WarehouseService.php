@@ -26,18 +26,16 @@ class WarehouseService
 
             $order = WarehouseOrder::create([
                 'purchase_order_id' => $po->id,
-                'warehouse_id' => $warehouse->id,
-                'order_type' => 'inbound',
-                'status' => 'pending',
-                'expected_date' => $po->delivery_date ?? now()->addDays(7),
+                'warehouse_id'      => $warehouse->id,
+                'type'              => 'inbound',
+                'status'            => 'pending',
             ]);
 
             foreach ($po->items as $poItem) {
                 $order->items()->create([
-                    'product_id' => $poItem->product_id,
+                    'product_id'        => $poItem->product_id,
                     'expected_quantity' => $poItem->quantity,
-                    'received_quantity' => 0,
-                    'status' => 'pending',
+                    'status'            => 'pending',
                 ]);
             }
 
@@ -59,24 +57,14 @@ class WarehouseService
                 $orderItem = WarehouseOrderItem::findOrFail($itemData['warehouse_order_item_id']);
 
                 $orderItem->update([
-                    'received_quantity' => $itemData['received_quantity'],
-                    'condition' => $itemData['condition'] ?? 'good',
-                    'received_at' => now(),
-                    'status' => 'received',
+                    'received_quantity' => $itemData['received_quantity'] ?? $orderItem->expected_quantity,
+                    'status'            => 'received',
                 ]);
             }
 
-            // Check if all items have been received
             $allReceived = $order->items()->where('status', '!=', 'received')->doesntExist();
 
-            if ($allReceived) {
-                $order->update([
-                    'status' => 'received',
-                    'received_at' => now(),
-                ]);
-            } else {
-                $order->update(['status' => 'partially_received']);
-            }
+            $order->update(['status' => $allReceived ? 'putaway' : 'receiving']);
         });
     }
 
@@ -91,12 +79,10 @@ class WarehouseService
     {
         DB::transaction(function () use ($item, $location) {
             $item->update([
-                'location_id' => $location->id,
-                'status' => 'putaway',
-                'putaway_at' => now(),
+                'warehouse_location_id' => $location->id,
+                'status'                => 'putaway',
             ]);
 
-            // Update location occupancy
             $location->increment('current_quantity', $item->received_quantity);
         });
     }
@@ -111,7 +97,7 @@ class WarehouseService
     {
         return $order->items()
             ->with(['product', 'location'])
-            ->join('warehouse_locations', 'warehouse_order_items.location_id', '=', 'warehouse_locations.id')
+            ->leftJoin('warehouse_locations', 'warehouse_order_items.warehouse_location_id', '=', 'warehouse_locations.id')
             ->orderBy('warehouse_locations.zone')
             ->orderBy('warehouse_locations.aisle')
             ->orderBy('warehouse_locations.rack')
@@ -140,13 +126,11 @@ class WarehouseService
         DB::transaction(function () use ($item, $quantity) {
             $item->update([
                 'picked_quantity' => $quantity,
-                'status' => 'picked',
-                'picked_at' => now(),
+                'status'          => 'picked',
             ]);
 
-            // Reduce location occupancy
-            if ($item->location_id) {
-                WarehouseLocation::where('id', $item->location_id)
+            if ($item->warehouse_location_id) {
+                WarehouseLocation::where('id', $item->warehouse_location_id)
                     ->decrement('current_quantity', $quantity);
             }
         });
@@ -171,15 +155,8 @@ class WarehouseService
         }
 
         DB::transaction(function () use ($order) {
-            $order->items()->update([
-                'status' => 'packed',
-                'packed_at' => now(),
-            ]);
-
-            $order->update([
-                'status' => 'packed',
-                'packed_at' => now(),
-            ]);
+            $order->items()->update(['status' => 'packed']);
+            $order->update(['status' => 'packing']);
         });
     }
 
@@ -194,16 +171,17 @@ class WarehouseService
      */
     public function processShipping(WarehouseOrder $order, ?string $trackingNumber = null): void
     {
-        if ($order->status !== 'packed') {
+        if ($order->getRawOriginal('status') !== 'packing') {
             throw new \InvalidArgumentException(
-                'Order must be packed before it can be shipped. Current status: ' . $order->status
+                'Order must be packed before it can be shipped. Current status: ' . $order->getRawOriginal('status')
             );
         }
 
+        $notes = $trackingNumber ? ($order->notes ? $order->notes . ' | Tracking: ' . $trackingNumber : 'Tracking: ' . $trackingNumber) : $order->notes;
+
         $order->update([
             'status' => 'shipped',
-            'tracking_number' => $trackingNumber,
-            'shipped_at' => now(),
+            'notes'  => $notes,
         ]);
 
         $order->items()->update(['status' => 'shipped']);
@@ -218,73 +196,54 @@ class WarehouseService
      *
      * @throws \InvalidArgumentException If the barcode cannot be resolved.
      */
-    public function processBarcodeScan(string $barcode, Warehouse $warehouse): array
+    public function processBarcodeScan(string $barcode, ?Warehouse $warehouse = null): array
     {
         // Try to match as a product SKU
         $product = \App\Models\Product::where('sku', $barcode)->first();
         if ($product) {
-            $inventory = \App\Models\Inventory::where('product_id', $product->id)
-                ->where('warehouse_id', $warehouse->id)
-                ->first();
+            $query = \App\Models\Inventory::where('product_id', $product->id);
+            if ($warehouse) {
+                $query->where('warehouse_id', $warehouse->id);
+            }
+            $totalStock = $query->sum('quantity_on_hand');
 
             return [
-                'type' => 'product',
-                'data' => [
-                    'product_id' => $product->id,
-                    'name' => $product->name,
-                    'sku' => $product->sku,
-                    'quantity_on_hand' => $inventory->quantity_on_hand ?? 0,
-                    'quantity_available' => $inventory->quantity_available ?? 0,
-                    'warehouse' => $warehouse->name,
-                ],
+                'product' => $product->name,
+                'sku'     => $product->sku,
+                'stock'   => number_format($totalStock, 2) . ' ' . $product->unit_of_measure,
             ];
         }
 
         // Try to match as a warehouse order number
-        $order = WarehouseOrder::where('warehouse_id', $warehouse->id)
-            ->whereHas('purchaseOrder', function ($query) use ($barcode) {
-                $query->where('po_number', $barcode);
-            })
-            ->with('items.product')
-            ->first();
-
+        $orderQuery = WarehouseOrder::whereHas('purchaseOrder', function ($query) use ($barcode) {
+            $query->where('po_number', $barcode);
+        })->with('items');
+        if ($warehouse) {
+            $orderQuery->where('warehouse_id', $warehouse->id);
+        }
+        $order = $orderQuery->first();
         if ($order) {
             return [
-                'type' => 'order',
-                'data' => [
-                    'order_id' => $order->id,
-                    'purchase_order_number' => $barcode,
-                    'status' => $order->status,
-                    'items_count' => $order->items->count(),
-                    'warehouse' => $warehouse->name,
-                ],
+                'product' => 'Purchase Order: ' . $barcode,
+                'sku'     => $barcode,
+                'stock'   => $order->items->count() . ' line item(s) — Status: ' . $order->status,
             ];
         }
 
         // Try to match as a warehouse location code
-        $location = WarehouseLocation::where('warehouse_id', $warehouse->id)
-            ->where('code', $barcode)
-            ->first();
-
+        $locationQuery = WarehouseLocation::where('code', $barcode);
+        if ($warehouse) {
+            $locationQuery->where('warehouse_id', $warehouse->id);
+        }
+        $location = $locationQuery->first();
         if ($location) {
             return [
-                'type' => 'location',
-                'data' => [
-                    'location_id' => $location->id,
-                    'code' => $location->code,
-                    'zone' => $location->zone,
-                    'aisle' => $location->aisle,
-                    'rack' => $location->rack,
-                    'shelf' => $location->shelf,
-                    'current_quantity' => $location->current_quantity,
-                    'max_capacity' => $location->max_capacity,
-                    'warehouse' => $warehouse->name,
-                ],
+                'product' => 'Location: ' . $location->code,
+                'sku'     => $location->code,
+                'stock'   => ($location->current_quantity ?? 0) . ' / ' . ($location->max_capacity ?? '—'),
             ];
         }
 
-        throw new \InvalidArgumentException(
-            "Barcode '{$barcode}' could not be resolved to a product, order, or location in warehouse '{$warehouse->name}'."
-        );
+        return ['message' => "No product, order, or location found for barcode \"{$barcode}\"."];
     }
 }

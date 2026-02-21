@@ -18,7 +18,7 @@
                         <td class="px-4 py-3">{{ $order->items->count() }} items</td>
                         <td class="px-4 py-3 text-gray-500">{{ $order->created_at->format('M d, Y') }}</td>
                         <td class="px-4 py-3">
-                            <form method="POST" action="{{ route('warehouse.receiving.receive', $order) }}">@csrf
+                            <form method="POST" action="{{ route('warehouse.receiving.process', $order) }}">@csrf
                                 <button class="px-3 py-1.5 bg-green-600 text-white text-xs rounded-md">Process Receipt</button>
                             </form>
                         </td>

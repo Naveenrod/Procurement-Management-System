@@ -3,13 +3,13 @@
     <div class="py-6">
         <div class="flex justify-between items-center mb-4">
             <form method="GET" class="flex gap-2">
-                <select name="type" class="border rounded-md px-3 py-1.5 text-sm">
+                <select name="type" class="border rounded-md px-3 py-1.5 text-sm min-w-[10rem]">
                     <option value="">All Types</option>
                     <option value="inbound" @selected(request('type') === 'inbound')>Inbound</option>
                     <option value="outbound" @selected(request('type') === 'outbound')>Outbound</option>
                     <option value="internal" @selected(request('type') === 'internal')>Internal</option>
                 </select>
-                <select name="status" class="border rounded-md px-3 py-1.5 text-sm">
+                <select name="status" class="border rounded-md px-3 py-1.5 text-sm min-w-[10rem]">
                     <option value="">All Statuses</option>
                     @foreach(\App\Enums\WarehouseOrderStatus::cases() as $s)
                     <option value="{{ $s->value }}" @selected(request('status') === $s->value)>{{ $s->label() }}</option>
