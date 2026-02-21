@@ -2,7 +2,7 @@
     <x-slot name="title">Budgets</x-slot>
     <div class="py-6">
         <div class="flex justify-end mb-4">
-            <a href="{{ route('budgets.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New Budget</a>
+            <a href="{{ route('procurement.budgets.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New Budget</a>
         </div>
         @if($budgets->count())
         <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -33,14 +33,14 @@
                             <div class="h-2 bg-gray-200 rounded-full"><div class="h-2 {{ $pct > 90 ? 'bg-red-500' : ($pct > 70 ? 'bg-yellow-400' : 'bg-green-500') }} rounded-full" style="width:{{ min($pct, 100) }}%"></div></div>
                             <p class="text-xs text-gray-500 mt-0.5">{{ $pct }}%</p>
                         </td>
-                        <td class="px-4 py-3"><a href="{{ route('budgets.show', $budget) }}" class="text-blue-600 hover:underline text-xs">View</a></td>
+                        <td class="px-4 py-3"><a href="{{ route('procurement.budgets.show', $budget) }}" class="text-blue-600 hover:underline text-xs">View</a></td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
         @else
-        <x-empty-state title="No budgets found" action-url="{{ route('budgets.create') }}" action-label="New Budget" />
+        <x-empty-state title="No budgets found" action-url="{{ route('procurement.budgets.create') }}" action-label="New Budget" />
         @endif
     </div>
 </x-app-layout>

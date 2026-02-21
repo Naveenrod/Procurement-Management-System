@@ -14,7 +14,7 @@
             @if($budget->category)<p class="mt-4 text-sm text-gray-600">Category: {{ $budget->category->name }}</p>@endif
         </div>
         <div class="flex justify-end mt-4">
-            <a href="{{ route('budgets.edit', $budget) }}" class="px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50">Edit</a>
+            <a href="{{ route('procurement.budgets.edit', $budget) }}" class="px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50">Edit</a>
         </div>
     </div>
 </x-app-layout>

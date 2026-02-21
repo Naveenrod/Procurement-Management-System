@@ -34,8 +34,10 @@ class InventoryController extends Controller
     public function adjust(Request $request): RedirectResponse
     {
         $validated = $request->validate(['product_id' => 'required|exists:products,id', 'warehouse_id' => 'required|exists:warehouses,id', 'type' => 'required|in:add,remove', 'quantity' => 'required|numeric|min:0.01', 'notes' => 'nullable|string']);
-        $qty = $validated['type'] === 'add' ? $validated['quantity'] : -$validated['quantity'];
-        $this->inventoryService->adjustStock($validated['product_id'], $validated['warehouse_id'], $qty, $validated['notes'] ?? null);
+        $product = Product::findOrFail($validated['product_id']);
+        $warehouse = Warehouse::findOrFail($validated['warehouse_id']);
+        $qty = $validated['type'] === 'add' ? (int) $validated['quantity'] : -(int) $validated['quantity'];
+        $this->inventoryService->adjustStock($product, $warehouse, $qty, 'adjustment', $validated['notes'] ?? null);
         return redirect()->route('inventory.stock.index')->with('success', 'Stock adjusted successfully.');
     }
 }

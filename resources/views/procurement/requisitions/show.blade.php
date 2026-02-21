@@ -10,20 +10,20 @@
                 <div class="flex items-center gap-3">
                     <x-status-badge :status="$requisition->status" />
                     @if($requisition->status === 'draft')
-                    <form method="POST" action="{{ route('requisitions.submit', $requisition) }}">@csrf
+                    <form method="POST" action="{{ route('procurement.requisitions.submit', $requisition) }}">@csrf
                         <button class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">Submit for Approval</button>
                     </form>
                     @endif
                     @if($requisition->status === 'pending_approval' && auth()->user()->hasRole(['admin','manager']))
-                    <form method="POST" action="{{ route('requisitions.approve', $requisition) }}">@csrf
+                    <form method="POST" action="{{ route('procurement.requisitions.approve', $requisition) }}">@csrf
                         <button class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700">Approve</button>
                     </form>
-                    <form method="POST" action="{{ route('requisitions.reject', $requisition) }}" onsubmit="return confirm('Enter rejection reason:')">@csrf
+                    <form method="POST" action="{{ route('procurement.requisitions.reject', $requisition) }}" onsubmit="return confirm('Enter rejection reason:')">@csrf
                         <button class="px-3 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700">Reject</button>
                     </form>
                     @endif
                     @if($requisition->status === 'approved')
-                    <a href="{{ route('purchase-orders.create', ['requisition_id' => $requisition->id]) }}" class="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700">Convert to PO</a>
+                    <a href="{{ route('procurement.purchase-orders.create', ['requisition_id' => $requisition->id]) }}" class="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700">Convert to PO</a>
                     @endif
                 </div>
             </div>

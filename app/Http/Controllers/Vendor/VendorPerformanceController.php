@@ -23,7 +23,7 @@ class VendorPerformanceController extends Controller
     public function store(Request $request, Vendor $vendor): RedirectResponse
     {
         $validated = $request->validate(['period_start' => 'required|date', 'period_end' => 'required|date|after:period_start', 'delivery_score' => 'required|numeric|min:0|max:100', 'quality_score' => 'required|numeric|min:0|max:100', 'price_score' => 'required|numeric|min:0|max:100', 'responsiveness_score' => 'required|numeric|min:0|max:100', 'notes' => 'nullable|string']);
-        $this->vendorService->recordPerformanceScore($vendor, $validated);
+        $this->vendorService->calculatePerformanceScore($vendor, $validated);
         return redirect()->route('vendors.performance.index', $vendor)->with('success', 'Performance score recorded.');
     }
 }

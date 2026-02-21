@@ -15,7 +15,7 @@
                 </form>
             </div>
             @can('manage-procurement')
-            <a href="{{ route('requisitions.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New Requisition</a>
+            <a href="{{ route('procurement.requisitions.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New Requisition</a>
             @endcan
         </div>
 
@@ -45,7 +45,7 @@
                         <td class="px-4 py-3 text-gray-500">{{ optional($req->required_date)->format('M d, Y') }}</td>
                         <td class="px-4 py-3 text-gray-800">${{ number_format($req->total_amount, 2) }}</td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('requisitions.show', $req) }}" class="text-blue-600 hover:underline text-xs">View</a>
+                            <a href="{{ route('procurement.requisitions.show', $req) }}" class="text-blue-600 hover:underline text-xs">View</a>
                         </td>
                     </tr>
                     @endforeach
@@ -54,7 +54,7 @@
         </div>
         <div class="mt-4">{{ $requisitions->withQueryString()->links() }}</div>
         @else
-        <x-empty-state title="No requisitions found" description="Create your first purchase requisition to get started." action-url="{{ route('requisitions.create') }}" action-label="New Requisition" />
+        <x-empty-state title="No requisitions found" description="Create your first purchase requisition to get started." action-url="{{ route('procurement.requisitions.create') }}" action-label="New Requisition" />
         @endif
     </div>
 </x-app-layout>

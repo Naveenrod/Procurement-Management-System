@@ -11,7 +11,7 @@
                 </select>
                 <button class="px-3 py-1.5 bg-gray-100 rounded-md text-sm">Filter</button>
             </form>
-            <a href="{{ route('invoices.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New Invoice</a>
+            <a href="{{ route('procurement.invoices.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New Invoice</a>
         </div>
         @if($invoices->count())
         <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -34,13 +34,13 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-mono text-xs">{{ $invoice->invoice_number }}</td>
                         <td class="px-4 py-3">{{ optional($invoice->vendor)->name }}</td>
-                        <td class="px-4 py-3"><a href="{{ route('purchase-orders.show', $invoice->purchaseOrder) }}" class="text-blue-600 hover:underline text-xs">{{ optional($invoice->purchaseOrder)->po_number }}</a></td>
+                        <td class="px-4 py-3"><a href="{{ route('procurement.purchase-orders.show', $invoice->purchaseOrder) }}" class="text-blue-600 hover:underline text-xs">{{ optional($invoice->purchaseOrder)->po_number }}</a></td>
                         <td class="px-4 py-3 text-gray-500">{{ optional($invoice->invoice_date)->format('M d, Y') }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ optional($invoice->due_date)->format('M d, Y') }}</td>
                         <td class="px-4 py-3 text-right font-medium">${{ number_format($invoice->total_amount, 2) }}</td>
                         <td class="px-4 py-3"><x-status-badge :status="$invoice->status" /></td>
                         <td class="px-4 py-3"><x-status-badge :status="$invoice->three_way_match_status" /></td>
-                        <td class="px-4 py-3"><a href="{{ route('invoices.show', $invoice) }}" class="text-blue-600 hover:underline text-xs">View</a></td>
+                        <td class="px-4 py-3"><a href="{{ route('procurement.invoices.show', $invoice) }}" class="text-blue-600 hover:underline text-xs">View</a></td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -48,7 +48,7 @@
         </div>
         <div class="mt-4">{{ $invoices->links() }}</div>
         @else
-        <x-empty-state title="No invoices found" action-url="{{ route('invoices.create') }}" action-label="New Invoice" />
+        <x-empty-state title="No invoices found" action-url="{{ route('procurement.invoices.create') }}" action-label="New Invoice" />
         @endif
     </div>
 </x-app-layout>

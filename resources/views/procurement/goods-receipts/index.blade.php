@@ -3,7 +3,7 @@
     <div class="py-6">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">Goods Receipts</h2>
-            <a href="{{ route('goods-receipts.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New Receipt</a>
+            <a href="{{ route('procurement.goods-receipts.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New Receipt</a>
         </div>
         @if($receipts->count())
         <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -22,11 +22,11 @@
                     @foreach($receipts as $receipt)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-mono text-xs">{{ $receipt->receipt_number }}</td>
-                        <td class="px-4 py-3"><a href="{{ route('purchase-orders.show', $receipt->purchaseOrder) }}" class="text-blue-600 hover:underline">{{ optional($receipt->purchaseOrder)->po_number }}</a></td>
+                        <td class="px-4 py-3"><a href="{{ route('procurement.purchase-orders.show', $receipt->purchaseOrder) }}" class="text-blue-600 hover:underline">{{ optional($receipt->purchaseOrder)->po_number }}</a></td>
                         <td class="px-4 py-3">{{ optional($receipt->receiver)->name }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ optional($receipt->received_at)->format('M d, Y') }}</td>
                         <td class="px-4 py-3"><x-status-badge :status="$receipt->status" /></td>
-                        <td class="px-4 py-3"><a href="{{ route('goods-receipts.show', $receipt) }}" class="text-blue-600 hover:underline text-xs">View</a></td>
+                        <td class="px-4 py-3"><a href="{{ route('procurement.goods-receipts.show', $receipt) }}" class="text-blue-600 hover:underline text-xs">View</a></td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -34,7 +34,7 @@
         </div>
         <div class="mt-4">{{ $receipts->links() }}</div>
         @else
-        <x-empty-state title="No goods receipts" action-url="{{ route('goods-receipts.create') }}" action-label="New Receipt" />
+        <x-empty-state title="No goods receipts" action-url="{{ route('procurement.goods-receipts.create') }}" action-label="New Receipt" />
         @endif
     </div>
 </x-app-layout>

@@ -22,7 +22,7 @@ class DashboardService
                 + Invoice::where('status', 'pending_approval')->count(),
             'low_stock_items' => $this->getLowStockCount(),
             'active_vehicles' => Vehicle::where('status', 'in_use')->count(),
-            'total_spend_mtd' => PurchaseOrder::whereNotIn('status', ['draft', 'cancelled'])
+            'total_spend_month' => PurchaseOrder::whereNotIn('status', ['draft', 'cancelled'])
                 ->whereYear('order_date', now()->year)
                 ->whereMonth('order_date', now()->month)
                 ->sum('total_amount'),
@@ -40,7 +40,7 @@ class DashboardService
             'open_pos' => PurchaseOrder::whereIn('status', ['draft', 'pending_approval', 'approved', 'sent'])->count(),
             'pending_invoices' => Invoice::where('status', 'pending')->count(),
             'low_stock_items' => $this->getLowStockCount(),
-            'total_spend_mtd' => PurchaseOrder::whereNotIn('status', ['draft', 'cancelled'])
+            'total_spend_month' => PurchaseOrder::whereNotIn('status', ['draft', 'cancelled'])
                 ->whereYear('order_date', now()->year)
                 ->whereMonth('order_date', now()->month)
                 ->sum('total_amount'),
@@ -61,7 +61,7 @@ class DashboardService
     public function getWarehouseStats(): array
     {
         return [
-            'pending_orders' => WarehouseOrder::where('status', 'pending')->count(),
+            'orders_to_process' => WarehouseOrder::where('status', 'pending')->count(),
             'orders_to_receive' => WarehouseOrder::where('type', 'inbound')->where('status', 'pending')->count(),
             'orders_to_pick' => WarehouseOrder::where('type', 'outbound')->where('status', 'putaway')->count(),
             'low_stock_items' => $this->getLowStockCount(),
@@ -90,7 +90,7 @@ class DashboardService
                 ->whereMonth('order_date', $date->month)
                 ->whereNotIn('status', ['draft', 'cancelled'])
                 ->sum('total_amount');
-            $data[] = ['month' => $date->format('M Y'), 'spend' => (float) $spend];
+            $data[] = ['month' => $date->format('M Y'), 'total' => (float) $spend];
         }
         return $data;
     }

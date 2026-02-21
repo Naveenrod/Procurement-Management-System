@@ -13,7 +13,7 @@
                 <button class="px-3 py-1.5 bg-gray-100 rounded-md text-sm">Filter</button>
             </form>
             @can('manage-procurement')
-            <a href="{{ route('purchase-orders.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New PO</a>
+            <a href="{{ route('procurement.purchase-orders.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New PO</a>
             @endcan
         </div>
 
@@ -37,11 +37,11 @@
                         <td class="px-4 py-3 font-mono text-xs font-semibold">{{ $order->po_number }}</td>
                         <td class="px-4 py-3 text-gray-800">{{ optional($order->vendor)->name }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ optional($order->order_date)->format('M d, Y') }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ optional($order->expected_delivery_date)->format('M d, Y') ?? '—' }}</td>
+                        <td class="px-4 py-3 text-gray-500">{{ $order->expected_delivery_date ? $order->expected_delivery_date->format('M d, Y') : '—' }}</td>
                         <td class="px-4 py-3"><x-status-badge :status="$order->status" /></td>
                         <td class="px-4 py-3 text-right font-medium">${{ number_format($order->total_amount, 2) }}</td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('purchase-orders.show', $order) }}" class="text-blue-600 hover:underline text-xs">View</a>
+                            <a href="{{ route('procurement.purchase-orders.show', $order) }}" class="text-blue-600 hover:underline text-xs">View</a>
                         </td>
                     </tr>
                     @endforeach
@@ -50,7 +50,7 @@
         </div>
         <div class="mt-4">{{ $orders->withQueryString()->links() }}</div>
         @else
-        <x-empty-state title="No purchase orders found" action-url="{{ route('purchase-orders.create') }}" action-label="New Purchase Order" />
+        <x-empty-state title="No purchase orders found" action-url="{{ route('procurement.purchase-orders.create') }}" action-label="New Purchase Order" />
         @endif
     </div>
 </x-app-layout>

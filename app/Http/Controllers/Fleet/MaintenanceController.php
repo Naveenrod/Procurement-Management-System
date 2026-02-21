@@ -31,13 +31,14 @@ class MaintenanceController extends Controller
     public function show(MaintenanceRecord $maintenance): View
     {
         $maintenance->load('vehicle');
-        return view('fleet.maintenance.show', compact('maintenance'));
+        return view('fleet.maintenance.show', ['record' => $maintenance]);
     }
 
     public function edit(MaintenanceRecord $maintenance): View
     {
         $vehicles = Vehicle::orderBy('registration_number')->get();
-        return view('fleet.maintenance.edit', compact('maintenance', 'vehicles'));
+        $record = $maintenance;
+        return view('fleet.maintenance.edit', compact('record', 'vehicles'));
     }
 
     public function update(Request $request, MaintenanceRecord $maintenance): RedirectResponse

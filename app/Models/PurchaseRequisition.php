@@ -54,6 +54,11 @@ class PurchaseRequisition extends Model
         return $this->belongsTo(User::class, 'requested_by');
     }
 
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
+
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');

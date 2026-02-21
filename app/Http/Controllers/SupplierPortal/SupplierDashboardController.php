@@ -11,9 +11,13 @@ class SupplierDashboardController extends Controller
     public function index(): View
     {
         $vendorId = auth()->user()->vendor_id;
-        $openPOs = PurchaseOrder::where('vendor_id', $vendorId)->whereIn('status', ['sent', 'approved'])->count();
+        $openPos = PurchaseOrder::where('vendor_id', $vendorId)->whereIn('status', ['sent', 'approved'])->count();
         $pendingInvoices = Invoice::where('vendor_id', $vendorId)->where('status', 'pending')->count();
         $recentPOs = PurchaseOrder::where('vendor_id', $vendorId)->latest()->limit(5)->get();
-        return view('supplier.dashboard', compact('openPOs', 'pendingInvoices', 'recentPOs'));
+
+        $vendor = auth()->user()->vendor;
+        $performanceScore = $vendor ? $vendor->rating : null;
+
+        return view('supplier.dashboard', compact('openPos', 'pendingInvoices', 'recentPOs', 'performanceScore'));
     }
 }

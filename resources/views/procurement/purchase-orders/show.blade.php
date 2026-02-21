@@ -10,17 +10,17 @@
                 <div class="flex items-center gap-3">
                     <x-status-badge :status="$order->status" />
                     @if($order->status === 'draft' && auth()->user()->hasRole(['admin','manager']))
-                    <form method="POST" action="{{ route('purchase-orders.approve', $order) }}">@csrf
+                    <form method="POST" action="{{ route('procurement.purchase-orders.approve', $order) }}">@csrf
                         <button class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md">Approve</button>
                     </form>
                     @endif
                     @if($order->status === 'approved')
-                    <form method="POST" action="{{ route('purchase-orders.send', $order) }}">@csrf
+                    <form method="POST" action="{{ route('procurement.purchase-orders.send', $order) }}">@csrf
                         <button class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md">Send to Vendor</button>
                     </form>
                     @endif
                     @if(in_array($order->status, ['sent','approved']))
-                    <a href="{{ route('goods-receipts.create', ['po_id' => $order->id]) }}" class="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-md">Receive Goods</a>
+                    <a href="{{ route('procurement.goods-receipts.create', ['po_id' => $order->id]) }}" class="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-md">Receive Goods</a>
                     @endif
                 </div>
             </div>
@@ -68,7 +68,7 @@
             <h3 class="font-semibold text-gray-800 mb-3">Goods Receipts</h3>
             @foreach($order->goodsReceipts as $gr)
             <div class="flex justify-between items-center py-2 border-b last:border-0">
-                <a href="{{ route('goods-receipts.show', $gr) }}" class="text-blue-600 hover:underline text-sm">{{ $gr->receipt_number }}</a>
+                <a href="{{ route('procurement.goods-receipts.show', $gr) }}" class="text-blue-600 hover:underline text-sm">{{ $gr->receipt_number }}</a>
                 <x-status-badge :status="$gr->status" />
                 <span class="text-xs text-gray-500">{{ optional($gr->received_at)->format('M d, Y') }}</span>
             </div>

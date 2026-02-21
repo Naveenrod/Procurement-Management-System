@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Procurement;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
+use App\Models\Vendor;
 use App\Services\ThreeWayMatchService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,7 +25,8 @@ class InvoiceController extends Controller
     public function create(): View
     {
         $purchaseOrders = PurchaseOrder::whereIn('status', ['sent', 'approved', 'received', 'acknowledged'])->with('vendor')->get();
-        return view('procurement.invoices.create', compact('purchaseOrders'));
+        $vendors = Vendor::where('status', 'approved')->orderBy('name')->get();
+        return view('procurement.invoices.create', compact('purchaseOrders', 'vendors'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -79,10 +81,10 @@ class InvoiceController extends Controller
     public function threeWayMatch(Invoice $invoice): RedirectResponse
     {
         $result = $this->matchService->performMatch($invoice);
-        $status = $result['matched'] ? 'matched' : 'mismatch';
-        $invoice->update(['three_way_match_status' => $status]);
-        $msg = $result['matched'] ? 'Three-way match passed.' : 'Three-way match failed.';
-        return redirect()->route('procurement.invoices.show', $invoice)->with($result['matched'] ? 'success' : 'error', $msg);
+        $matched = $result['status'] === 'matched';
+        $invoice->update(['three_way_match_status' => $result['status']]);
+        $msg = $matched ? 'Three-way match passed.' : 'Three-way match failed.';
+        return redirect()->route('procurement.invoices.show', $invoice)->with($matched ? 'success' : 'error', $msg);
     }
 
     public function approve(Invoice $invoice): RedirectResponse

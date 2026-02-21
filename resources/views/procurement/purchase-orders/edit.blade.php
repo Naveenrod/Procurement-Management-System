@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Edit Purchase Order</x-slot>
     <div class="py-6 max-w-4xl">
-        <form method="POST" action="{{ route('purchase-orders.update', $order) }}">
+        <form method="POST" action="{{ route('procurement.purchase-orders.update', $order) }}">
             @csrf @method('PUT')
             <div class="bg-white rounded-lg shadow-sm border p-6 space-y-4">
                 <div class="grid grid-cols-3 gap-4">
@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-4">
-                <a href="{{ route('purchase-orders.show', $order) }}" class="px-4 py-2 border rounded-md text-sm text-gray-700">Cancel</a>
+                <a href="{{ route('procurement.purchase-orders.show', $order) }}" class="px-4 py-2 border rounded-md text-sm text-gray-700">Cancel</a>
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">Save Changes</button>
             </div>
         </form>

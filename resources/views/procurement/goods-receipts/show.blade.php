@@ -5,7 +5,7 @@
             <div class="flex justify-between items-start">
                 <div>
                     <h2 class="text-xl font-bold text-gray-800">{{ $receipt->receipt_number }}</h2>
-                    <p class="text-sm text-gray-500 mt-1">PO: <a href="{{ route('purchase-orders.show', $receipt->purchaseOrder) }}" class="text-blue-600">{{ optional($receipt->purchaseOrder)->po_number }}</a></p>
+                    <p class="text-sm text-gray-500 mt-1">PO: <a href="{{ route('procurement.purchase-orders.show', $receipt->purchaseOrder) }}" class="text-blue-600">{{ optional($receipt->purchaseOrder)->po_number }}</a></p>
                 </div>
                 <x-status-badge :status="$receipt->status" />
             </div>

@@ -27,6 +27,7 @@ class VendorController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'contact_person' => 'required|string|max:255',
             'email' => 'required|email|unique:vendors',
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string',
@@ -50,7 +51,7 @@ class VendorController extends Controller
 
     public function update(Request $request, Vendor $vendor): RedirectResponse
     {
-        $vendor->update($request->validate(['name' => 'required|string', 'email' => 'required|email|unique:vendors,email,' . $vendor->id, 'phone' => 'nullable|string', 'address' => 'nullable|string', 'city' => 'nullable|string', 'country' => 'nullable|string', 'website' => 'nullable|url', 'tax_id' => 'nullable|string', 'payment_terms' => 'nullable|string']));
+        $vendor->update($request->validate(['name' => 'required|string', 'contact_person' => 'required|string', 'email' => 'required|email|unique:vendors,email,' . $vendor->id, 'phone' => 'nullable|string', 'address' => 'nullable|string', 'city' => 'nullable|string', 'country' => 'nullable|string', 'website' => 'nullable|url', 'tax_id' => 'nullable|string', 'payment_terms' => 'nullable|string']));
         return redirect()->route('vendors.show', $vendor)->with('success', 'Vendor updated.');
     }
 

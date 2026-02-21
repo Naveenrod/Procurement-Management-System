@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">New Budget</x-slot>
     <div class="py-6 max-w-2xl">
-        <form method="POST" action="{{ route('budgets.store') }}">
+        <form method="POST" action="{{ route('procurement.budgets.store') }}">
             @csrf
             <div class="bg-white rounded-lg shadow-sm border p-6 space-y-4">
                 <div class="grid grid-cols-2 gap-4">
@@ -29,7 +29,7 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-4">
-                <a href="{{ route('budgets.index') }}" class="px-4 py-2 border rounded-md text-sm text-gray-700">Cancel</a>
+                <a href="{{ route('procurement.budgets.index') }}" class="px-4 py-2 border rounded-md text-sm text-gray-700">Cancel</a>
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">Create Budget</button>
             </div>
         </form>

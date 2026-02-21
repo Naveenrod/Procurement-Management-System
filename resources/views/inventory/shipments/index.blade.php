@@ -21,7 +21,7 @@
                     @foreach($shipments as $shipment)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-mono text-xs">{{ $shipment->tracking_number }}</td>
-                        <td class="px-4 py-3"><a href="{{ route('purchase-orders.show', $shipment->purchaseOrder) }}" class="text-blue-600 hover:underline text-xs">{{ optional($shipment->purchaseOrder)->po_number }}</a></td>
+                        <td class="px-4 py-3"><a href="{{ route('procurement.purchase-orders.show', $shipment->purchaseOrder) }}" class="text-blue-600 hover:underline text-xs">{{ optional($shipment->purchaseOrder)->po_number }}</a></td>
                         <td class="px-4 py-3 text-gray-500">{{ $shipment->carrier ?? '—' }}</td>
                         <td class="px-4 py-3"><x-status-badge :status="$shipment->status" /></td>
                         <td class="px-4 py-3 text-gray-500">{{ optional($shipment->estimated_arrival)->format('M d, Y') ?? '—' }}</td>

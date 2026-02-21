@@ -29,7 +29,7 @@ class ProcurementService
             $totalAmount = 0;
 
             foreach ($items as $itemData) {
-                $lineTotal = $itemData['quantity'] * $itemData['unit_price'];
+                $lineTotal = $itemData['quantity'] * $itemData['estimated_unit_price'];
                 $totalAmount += $lineTotal;
 
                 $requisition->items()->create(array_merge($itemData, [
@@ -37,6 +37,42 @@ class ProcurementService
                 ]));
             }
 
+            $requisition->update(['total_amount' => $totalAmount]);
+            $requisition->refresh();
+
+            return $requisition;
+        });
+    }
+
+    /**
+     * Update an existing purchase requisition and its line items.
+     *
+     * @param PurchaseRequisition $requisition
+     * @param array $data Validated data including 'items' key
+     * @return PurchaseRequisition
+     */
+    public function updateRequisition(PurchaseRequisition $requisition, array $data): PurchaseRequisition
+    {
+        return DB::transaction(function () use ($requisition, $data) {
+            $items = $data['items'] ?? [];
+            unset($data['items']);
+
+            $requisition->update($data);
+
+            // Replace items
+            $requisition->items()->delete();
+            $totalAmount = 0;
+            foreach ($items as $itemData) {
+                $lineTotal = ($itemData['quantity'] ?? 0) * ($itemData['unit_price'] ?? $itemData['estimated_unit_price'] ?? 0);
+                $totalAmount += $lineTotal;
+                $requisition->items()->create([
+                    'product_id' => $itemData['product_id'],
+                    'quantity' => $itemData['quantity'],
+                    'estimated_unit_price' => $itemData['unit_price'] ?? $itemData['estimated_unit_price'] ?? 0,
+                    'total_price' => $lineTotal,
+                    'specifications' => $itemData['specifications'] ?? null,
+                ]);
+            }
             $requisition->update(['total_amount' => $totalAmount]);
             $requisition->refresh();
 
@@ -114,6 +150,8 @@ class ProcurementService
         return DB::transaction(function () use ($data, $items) {
             $purchaseOrder = PurchaseOrder::create(array_merge($data, [
                 'status' => 'draft',
+                'order_date' => now()->toDateString(),
+                'created_by' => auth()->id(),
                 'subtotal' => 0,
                 'tax_amount' => 0,
                 'total_amount' => 0,

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">New Purchase Requisition</x-slot>
     <div class="py-6 max-w-4xl">
-        <form method="POST" action="{{ route('requisitions.store') }}" x-data="{ items: [{ product_id: '', quantity: 1, estimated_unit_price: 0, specifications: '' }] }">
+        <form method="POST" action="{{ route('procurement.requisitions.store') }}" x-data="{ items: [{ product_id: '', quantity: 1, estimated_unit_price: 0, specifications: '' }] }">
             @csrf
             <div class="bg-white rounded-lg shadow-sm border p-6 space-y-4">
                 <div class="grid grid-cols-2 gap-4">
@@ -66,7 +66,7 @@
             </div>
 
             <div class="flex justify-end gap-3 mt-4">
-                <a href="{{ route('requisitions.index') }}" class="px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50">Cancel</a>
+                <a href="{{ route('procurement.requisitions.index') }}" class="px-4 py-2 border rounded-md text-sm text-gray-700 hover:bg-gray-50">Cancel</a>
                 <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">Create Requisition</button>
             </div>
         </form>

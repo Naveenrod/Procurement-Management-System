@@ -11,7 +11,7 @@
                 </select>
                 <button class="px-3 py-1.5 bg-gray-100 rounded-md text-sm">Filter</button>
             </form>
-            <a href="{{ route('rfqs.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New RFQ</a>
+            <a href="{{ route('procurement.rfqs.create') }}" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">+ New RFQ</a>
         </div>
         @if($rfqs->count())
         <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -36,7 +36,7 @@
                         <td class="px-4 py-3 text-center">{{ $rfq->vendors->count() }}</td>
                         <td class="px-4 py-3 text-center">{{ $rfq->responses->count() }}</td>
                         <td class="px-4 py-3"><x-status-badge :status="$rfq->status" /></td>
-                        <td class="px-4 py-3"><a href="{{ route('rfqs.show', $rfq) }}" class="text-blue-600 hover:underline text-xs">View</a></td>
+                        <td class="px-4 py-3"><a href="{{ route('procurement.rfqs.show', $rfq) }}" class="text-blue-600 hover:underline text-xs">View</a></td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -44,7 +44,7 @@
         </div>
         <div class="mt-4">{{ $rfqs->links() }}</div>
         @else
-        <x-empty-state title="No RFQs found" action-url="{{ route('rfqs.create') }}" action-label="New RFQ" />
+        <x-empty-state title="No RFQs found" action-url="{{ route('procurement.rfqs.create') }}" action-label="New RFQ" />
         @endif
     </div>
 </x-app-layout>

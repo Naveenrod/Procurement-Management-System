@@ -38,7 +38,7 @@
                 @foreach($purchaseOrders as $po)
                 <div class="px-5 py-3 flex justify-between items-center">
                     <div><p class="font-medium text-sm font-mono">{{ $po->po_number }}</p><p class="text-xs text-gray-500">{{ optional($po->vendor)->name }}</p></div>
-                    <a href="{{ route('purchase-orders.show', $po) }}" class="text-blue-600 text-xs hover:underline">View</a>
+                    <a href="{{ route('procurement.purchase-orders.show', $po) }}" class="text-blue-600 text-xs hover:underline">View</a>
                 </div>
                 @endforeach
             </div>

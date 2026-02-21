@@ -7,7 +7,7 @@ use App\Models\InventoryTransaction;
 use App\Models\InventoryTransfer;
 use App\Models\Product;
 use App\Models\Warehouse;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class InventoryService
@@ -88,8 +88,17 @@ class InventoryService
             ->whereHas('product', function ($query) {
                 $query->where('is_active', true);
             })
-            ->whereRaw('quantity_on_hand <= (SELECT reorder_point FROM products WHERE products.id = inventories.product_id)')
-            ->get();
+            ->whereRaw('quantity_on_hand <= (SELECT reorder_point FROM products WHERE products.id = inventory.product_id)')
+            ->get()
+            ->map(fn($inventory) => [
+                'product_id'    => $inventory->product_id,
+                'sku'           => $inventory->product->sku,
+                'product'       => $inventory->product->name,
+                'warehouse'     => $inventory->warehouse->name,
+                'current_stock' => $inventory->quantity_on_hand,
+                'reorder_point' => $inventory->product->reorder_point,
+                'deficit'       => max(0, $inventory->product->reorder_point - $inventory->quantity_on_hand),
+            ]);
     }
 
     /**
@@ -114,10 +123,10 @@ class InventoryService
             foreach ($transfer->items as $item) {
                 $this->adjustStock(
                     Product::findOrFail($item->product_id),
-                    Warehouse::findOrFail($transfer->source_warehouse_id),
-                    -$item->quantity,
+                    Warehouse::findOrFail($transfer->from_warehouse_id),
+                    -$item->quantity_requested,
                     'transfer_out',
-                    "Transfer #{$transfer->transfer_number} shipment to warehouse #{$transfer->destination_warehouse_id}"
+                    "Transfer #{$transfer->transfer_number} shipment to warehouse #{$transfer->to_warehouse_id}"
                 );
             }
 
@@ -150,10 +159,10 @@ class InventoryService
             foreach ($transfer->items as $item) {
                 $this->adjustStock(
                     Product::findOrFail($item->product_id),
-                    Warehouse::findOrFail($transfer->destination_warehouse_id),
-                    $item->quantity,
+                    Warehouse::findOrFail($transfer->to_warehouse_id),
+                    $item->quantity_requested,
                     'transfer_in',
-                    "Transfer #{$transfer->transfer_number} received from warehouse #{$transfer->source_warehouse_id}"
+                    "Transfer #{$transfer->transfer_number} received from warehouse #{$transfer->from_warehouse_id}"
                 );
             }
 

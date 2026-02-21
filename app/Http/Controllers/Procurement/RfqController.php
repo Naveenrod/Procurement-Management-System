@@ -47,7 +47,9 @@ class RfqController extends Controller
             'issue_date' => now()->toDateString(),
             'issued_by' => auth()->id(),
         ]);
-        $rfq->vendors()->attach($validated['vendor_ids']);
+        foreach ($validated['vendor_ids'] as $vendorId) {
+            $rfq->vendors()->create(['vendor_id' => $vendorId, 'invited_at' => now()]);
+        }
         foreach ($validated['items'] as $item) { $rfq->items()->create($item); }
         return redirect()->route('procurement.rfqs.show', $rfq)->with('success', 'RFQ created successfully.');
     }

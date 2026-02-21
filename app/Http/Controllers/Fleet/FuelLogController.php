@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Fleet;
 
 use App\Http\Controllers\Controller;
 use App\Models\FuelLog;
+use App\Models\Trip;
 use App\Models\Vehicle;
 use App\Services\FleetService;
 use Illuminate\Http\RedirectResponse;
@@ -15,8 +16,8 @@ class FuelLogController extends Controller
 
     public function index(): View
     {
-        $fuelLogs = FuelLog::with(['vehicle', 'trip'])->latest()->paginate(20);
-        return view('fleet.fuel-logs.index', compact('fuelLogs'));
+        $logs = FuelLog::with(['vehicle', 'trip'])->latest()->paginate(20);
+        return view('fleet.fuel-logs.index', compact('logs'));
     }
 
     public function create(): View
@@ -42,7 +43,8 @@ class FuelLogController extends Controller
     public function edit(FuelLog $fuelLog): View
     {
         $vehicles = Vehicle::orderBy('registration_number')->get();
-        return view('fleet.fuel-logs.edit', compact('fuelLog', 'vehicles'));
+        $trips = Trip::orderBy('trip_number', 'desc')->get();
+        return view('fleet.fuel-logs.edit', compact('fuelLog', 'vehicles', 'trips'));
     }
 
     public function update(Request $request, FuelLog $fuelLog): RedirectResponse

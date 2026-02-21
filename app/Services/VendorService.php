@@ -38,7 +38,7 @@ class VendorService
         }
 
         $vendor->update([
-            'status' => 'active',
+            'status' => 'approved',
         ]);
 
         $vendor->refresh();

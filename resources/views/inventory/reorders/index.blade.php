@@ -25,7 +25,7 @@
                         <td class="px-4 py-3 text-right">{{ number_format($alert['reorder_point'], 2) }}</td>
                         <td class="px-4 py-3 text-right font-bold text-red-700">{{ number_format($alert['deficit'], 2) }}</td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('purchase-orders.create', ['product_id' => $alert['product_id']]) }}" class="px-2 py-1 bg-blue-600 text-white text-xs rounded">Create PO</a>
+                            <a href="{{ route('procurement.purchase-orders.create', ['product_id' => $alert['product_id']]) }}" class="px-2 py-1 bg-blue-600 text-white text-xs rounded">Create PO</a>
                         </td>
                     </tr>
                     @endforeach

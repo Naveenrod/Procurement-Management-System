@@ -16,10 +16,12 @@ class PurchaseOrderController extends Controller
 
     public function index(Request $request): View
     {
-        $purchaseOrders = PurchaseOrder::with('vendor')
+        $orders = PurchaseOrder::with('vendor')
+            ->when($request->search, fn($q, $s) => $q->where('po_number', 'like', "%$s%")
+                ->orWhereHas('vendor', fn($q) => $q->where('name', 'like', "%$s%")))
             ->when($request->status, fn($q, $s) => $q->where('status', $s))
             ->latest()->paginate(15);
-        return view('procurement.purchase-orders.index', compact('purchaseOrders'));
+        return view('procurement.purchase-orders.index', compact('orders'));
     }
 
     public function create(): View
@@ -40,14 +42,18 @@ class PurchaseOrderController extends Controller
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
-        $po = $this->procurementService->createPurchaseOrder($validated);
+        $po = $this->procurementService->createPurchaseOrder(
+            \Arr::except($validated, ['items']),
+            $validated['items']
+        );
         return redirect()->route('procurement.purchase-orders.show', $po)->with('success', 'Purchase order created.');
     }
 
     public function show(PurchaseOrder $purchaseOrder): View
     {
         $purchaseOrder->load(['vendor', 'items.product', 'creator', 'approver', 'goodsReceipts', 'invoices']);
-        return view('procurement.purchase-orders.show', compact('purchaseOrder'));
+        $order = $purchaseOrder;
+        return view('procurement.purchase-orders.show', compact('order'));
     }
 
     public function edit(PurchaseOrder $purchaseOrder): View
@@ -55,7 +61,8 @@ class PurchaseOrderController extends Controller
         $vendors = Vendor::where('status', 'approved')->get();
         $products = Product::orderBy('name')->get();
         $purchaseOrder->load('items');
-        return view('procurement.purchase-orders.edit', compact('purchaseOrder', 'vendors', 'products'));
+        $order = $purchaseOrder;
+        return view('procurement.purchase-orders.edit', compact('order', 'vendors', 'products'));
     }
 
     public function update(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse

@@ -11,8 +11,14 @@
                         <x-input-error :messages="$errors->get('name')" class="mt-1" />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input type="email" name="email" value="{{ old('email') }}" class="w-full border rounded-md px-3 py-2 text-sm">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Contact Person *</label>
+                        <input type="text" name="contact_person" value="{{ old('contact_person') }}" required class="w-full border rounded-md px-3 py-2 text-sm">
+                        <x-input-error :messages="$errors->get('contact_person')" class="mt-1" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                        <input type="email" name="email" value="{{ old('email') }}" required class="w-full border rounded-md px-3 py-2 text-sm">
+                        <x-input-error :messages="$errors->get('email')" class="mt-1" />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>

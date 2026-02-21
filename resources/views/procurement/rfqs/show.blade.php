@@ -10,12 +10,12 @@
                 <div class="flex items-center gap-3">
                     <x-status-badge :status="$rfq->status" />
                     @if($rfq->status === 'draft')
-                    <form method="POST" action="{{ route('rfqs.publish', $rfq) }}">@csrf
+                    <form method="POST" action="{{ route('procurement.rfqs.publish', $rfq) }}">@csrf
                         <button class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md">Publish</button>
                     </form>
                     @endif
                     @if($rfq->status === 'published')
-                    <form method="POST" action="{{ route('rfqs.close', $rfq) }}">@csrf
+                    <form method="POST" action="{{ route('procurement.rfqs.close', $rfq) }}">@csrf
                         <button class="px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md">Close</button>
                     </form>
                     @endif
@@ -48,7 +48,7 @@
                         <td class="px-4 py-3 text-center">{{ $response->is_selected ? '✓' : '' }}</td>
                         <td class="px-4 py-3">
                             @if($rfq->status === 'closed' && !$rfq->responses->where('is_selected', true)->count())
-                            <form method="POST" action="{{ route('rfqs.award', $rfq) }}">@csrf
+                            <form method="POST" action="{{ route('procurement.rfqs.award', $rfq) }}">@csrf
                                 <input type="hidden" name="response_id" value="{{ $response->id }}">
                                 <button class="text-xs text-green-600 hover:underline">Award</button>
                             </form>

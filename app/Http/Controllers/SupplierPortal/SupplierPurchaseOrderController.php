@@ -10,15 +10,16 @@ class SupplierPurchaseOrderController extends Controller
 {
     public function index(): View
     {
-        $purchaseOrders = PurchaseOrder::where('vendor_id', auth()->user()->vendor_id)->latest()->paginate(15);
-        return view('supplier.purchase-orders.index', compact('purchaseOrders'));
+        $orders = PurchaseOrder::where('vendor_id', auth()->user()->vendor_id)->latest()->paginate(15);
+        return view('supplier.purchase-orders.index', compact('orders'));
     }
 
     public function show(PurchaseOrder $purchaseOrder): View
     {
         abort_unless($purchaseOrder->vendor_id === auth()->user()->vendor_id, 403);
         $purchaseOrder->load('items.product');
-        return view('supplier.purchase-orders.show', compact('purchaseOrder'));
+        $order = $purchaseOrder;
+        return view('supplier.purchase-orders.show', compact('order'));
     }
 
     public function acknowledge(PurchaseOrder $purchaseOrder): RedirectResponse

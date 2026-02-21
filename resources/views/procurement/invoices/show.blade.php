@@ -10,19 +10,19 @@
                 <div class="flex items-center gap-3">
                     <x-status-badge :status="$invoice->status" />
                     @if($invoice->three_way_match_status === 'pending')
-                    <form method="POST" action="{{ route('invoices.three-way-match', $invoice) }}">@csrf
+                    <form method="POST" action="{{ route('procurement.invoices.match', $invoice) }}">@csrf
                         <button class="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-md">Run 3-Way Match</button>
                     </form>
                     @endif
                     @if($invoice->three_way_match_status === 'matched' && $invoice->status === 'pending' && auth()->user()->hasRole(['admin','manager']))
-                    <form method="POST" action="{{ route('invoices.approve', $invoice) }}">@csrf
+                    <form method="POST" action="{{ route('procurement.invoices.approve', $invoice) }}">@csrf
                         <button class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md">Approve</button>
                     </form>
                     @endif
                 </div>
             </div>
             <div class="grid grid-cols-4 gap-4 mt-4 text-sm">
-                <div><p class="text-gray-500">PO</p><a href="{{ route('purchase-orders.show', $invoice->purchaseOrder) }}" class="font-medium text-blue-600">{{ optional($invoice->purchaseOrder)->po_number }}</a></div>
+                <div><p class="text-gray-500">PO</p><a href="{{ route('procurement.purchase-orders.show', $invoice->purchaseOrder) }}" class="font-medium text-blue-600">{{ optional($invoice->purchaseOrder)->po_number }}</a></div>
                 <div><p class="text-gray-500">Invoice Date</p><p class="font-medium">{{ optional($invoice->invoice_date)->format('M d, Y') }}</p></div>
                 <div><p class="text-gray-500">Due Date</p><p class="font-medium">{{ optional($invoice->due_date)->format('M d, Y') }}</p></div>
                 <div><p class="text-gray-500">Match Status</p><x-status-badge :status="$invoice->three_way_match_status" /></div>

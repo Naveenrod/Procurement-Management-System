@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Procurement;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use App\Models\PurchaseRequisition;
 use App\Services\ProcurementService;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +29,9 @@ class PurchaseRequisitionController extends Controller
 
     public function create(): View
     {
-        return view('procurement.requisitions.create');
+        $products = Product::where('is_active', true)->orderBy('name')->get();
+
+        return view('procurement.requisitions.create', compact('products'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -42,11 +45,17 @@ class PurchaseRequisitionController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:1',
-            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.estimated_unit_price' => 'required|numeric|min:0',
             'items.*.specifications' => 'nullable|string',
         ]);
 
-        $requisition = $this->procurementService->createRequisition($validated);
+        $items = $validated['items'];
+        $data = array_merge(
+            array_diff_key($validated, ['items' => null]),
+            ['requested_by' => auth()->id()]
+        );
+
+        $requisition = $this->procurementService->createRequisition($data, $items);
 
         return redirect()
             ->route('procurement.requisitions.show', $requisition)
@@ -104,7 +113,7 @@ class PurchaseRequisitionController extends Controller
             'remarks' => 'nullable|string|max:500',
         ]);
 
-        $this->procurementService->approveRequisition($requisition, $request->input('remarks'));
+        $this->procurementService->approveRequisition($requisition, auth()->user());
 
         return redirect()
             ->route('procurement.requisitions.show', $requisition)
@@ -117,7 +126,7 @@ class PurchaseRequisitionController extends Controller
             'rejection_reason' => 'required|string|max:500',
         ]);
 
-        $this->procurementService->rejectRequisition($requisition, $request->input('rejection_reason'));
+        $this->procurementService->rejectRequisition($requisition, auth()->user(), $request->input('rejection_reason'));
 
         return redirect()
             ->route('procurement.requisitions.show', $requisition)
@@ -132,7 +141,7 @@ class PurchaseRequisitionController extends Controller
             'payment_terms' => 'nullable|string|max:255',
         ]);
 
-        $purchaseOrder = $this->procurementService->convertRequisitionToPo($requisition, $request->all());
+        $purchaseOrder = $this->procurementService->convertRequisitionToPo($requisition, (int) $request->input('vendor_id'));
 
         return redirect()
             ->route('procurement.purchase-orders.show', $purchaseOrder)

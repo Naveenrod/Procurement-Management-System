@@ -12,8 +12,8 @@ class GoodsReceiptController extends Controller
 {
     public function index(): View
     {
-        $goodsReceipts = GoodsReceipt::with(['purchaseOrder.vendor', 'receiver'])->latest()->paginate(15);
-        return view('procurement.goods-receipts.index', compact('goodsReceipts'));
+        $receipts = GoodsReceipt::with(['purchaseOrder.vendor', 'receiver'])->latest()->paginate(15);
+        return view('procurement.goods-receipts.index', compact('receipts'));
     }
 
     public function create(Request $request): View
@@ -53,12 +53,14 @@ class GoodsReceiptController extends Controller
     public function show(GoodsReceipt $goodsReceipt): View
     {
         $goodsReceipt->load(['purchaseOrder.vendor', 'items.purchaseOrderItem.product', 'receiver']);
-        return view('procurement.goods-receipts.show', compact('goodsReceipt'));
+        $receipt = $goodsReceipt;
+        return view('procurement.goods-receipts.show', compact('receipt'));
     }
 
     public function edit(GoodsReceipt $goodsReceipt): View
     {
-        return view('procurement.goods-receipts.edit', compact('goodsReceipt'));
+        $receipt = $goodsReceipt;
+        return view('procurement.goods-receipts.edit', compact('receipt'));
     }
 
     public function update(Request $request, GoodsReceipt $goodsReceipt): RedirectResponse

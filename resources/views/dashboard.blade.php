@@ -5,7 +5,7 @@
     <div class="py-6 space-y-6">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             @if(isset($stats['total_pos']))
-            <x-stats-card title="Purchase Orders" :value="$stats['total_pos']" icon="📦" color="blue" href="{{ route('purchase-orders.index') }}" />
+            <x-stats-card title="Purchase Orders" :value="$stats['total_pos']" icon="📦" color="blue" href="{{ route('procurement.purchase-orders.index') }}" />
             @endif
             @if(isset($stats['pending_approvals']))
             <x-stats-card title="Pending Approvals" :value="$stats['pending_approvals']" icon="⏳" color="yellow" />
@@ -17,7 +17,7 @@
             <x-stats-card title="Active Vendors" :value="$stats['active_vendors']" icon="🏢" color="green" href="{{ route('vendors.index') }}" />
             @endif
             @if(isset($stats['my_requisitions']))
-            <x-stats-card title="My Requisitions" :value="$stats['my_requisitions']" icon="📋" color="blue" href="{{ route('requisitions.index') }}" />
+            <x-stats-card title="My Requisitions" :value="$stats['my_requisitions']" icon="📋" color="blue" href="{{ route('procurement.requisitions.index') }}" />
             @endif
             @if(isset($stats['pending_receipts']))
             <x-stats-card title="Pending Receipts" :value="$stats['pending_receipts']" icon="📬" color="orange" />
@@ -35,7 +35,7 @@
             <div class="bg-white rounded-lg shadow-sm border">
                 <div class="px-5 py-4 border-b flex justify-between items-center">
                     <h3 class="font-semibold text-gray-800">Recent Requisitions</h3>
-                    <a href="{{ route('requisitions.index') }}" class="text-sm text-blue-600 hover:underline">View all</a>
+                    <a href="{{ route('procurement.requisitions.index') }}" class="text-sm text-blue-600 hover:underline">View all</a>
                 </div>
                 <div class="divide-y">
                     @foreach($recentRequisitions as $req)
@@ -55,7 +55,7 @@
             <div class="bg-white rounded-lg shadow-sm border">
                 <div class="px-5 py-4 border-b flex justify-between items-center">
                     <h3 class="font-semibold text-gray-800">Pending Invoices</h3>
-                    <a href="{{ route('invoices.index') }}" class="text-sm text-blue-600 hover:underline">View all</a>
+                    <a href="{{ route('procurement.invoices.index') }}" class="text-sm text-blue-600 hover:underline">View all</a>
                 </div>
                 <div class="divide-y">
                     @foreach($pendingInvoices as $inv)
