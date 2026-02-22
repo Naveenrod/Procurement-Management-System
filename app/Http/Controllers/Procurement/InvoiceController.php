@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Procurement;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
+use App\Models\User;
 use App\Models\Vendor;
+use App\Notifications\InvoiceStatusChanged;
 use App\Services\ThreeWayMatchService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,20 +38,22 @@ class InvoiceController extends Controller
             'purchase_order_id' => 'required|exists:purchase_orders,id',
             'goods_receipt_id' => 'nullable|exists:goods_receipts,id',
             'invoice_date' => 'required|date',
-            'due_date' => 'required|date',
+            'due_date' => 'required|date|after_or_equal:invoice_date',
+            'subtotal' => 'required|numeric|min:0',
+            'tax_amount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.purchase_order_item_id' => 'required|exists:purchase_order_items,id',
-            'items.*.description' => 'required|string',
-            'items.*.quantity' => 'required|numeric|min:0',
-            'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
-        $items = collect($validated['items'])->map(fn($i) => array_merge($i, ['total_price' => $i['quantity'] * $i['unit_price']]));
-        $subtotal = $items->sum('total_price');
+        $subtotal = $validated['subtotal'];
+        $taxAmount = $validated['tax_amount'] ?? 0;
 
-        $invoice = Invoice::create(array_merge($validated, ['subtotal' => $subtotal, 'total_amount' => $subtotal, 'submitted_by' => auth()->id()]));
-        foreach ($items as $item) { $invoice->items()->create($item); }
+        $invoice = Invoice::create(array_merge($validated, [
+            'tax_amount' => $taxAmount,
+            'total_amount' => $subtotal + $taxAmount,
+            'status' => 'pending',
+            'three_way_match_status' => 'pending',
+            'submitted_by' => auth()->id(),
+        ]));
 
         return redirect()->route('procurement.invoices.show', $invoice)->with('success', 'Invoice created.');
     }
@@ -90,6 +94,12 @@ class InvoiceController extends Controller
     public function approve(Invoice $invoice): RedirectResponse
     {
         $invoice->update(['status' => 'approved', 'approved_by' => auth()->id()]);
+        $invoice->refresh();
+
+        // Notify the submitter
+        $submitter = User::find($invoice->submitted_by);
+        $submitter?->notify(new InvoiceStatusChanged($invoice));
+
         return redirect()->route('procurement.invoices.show', $invoice)->with('success', 'Invoice approved.');
     }
 }

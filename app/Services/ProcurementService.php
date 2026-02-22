@@ -7,6 +7,9 @@ use App\Models\PurchaseOrderItem;
 use App\Models\PurchaseRequisition;
 use App\Models\PurchaseRequisitionItem;
 use App\Models\User;
+use App\Notifications\PurchaseOrderStatusChanged;
+use App\Notifications\RequisitionCreated;
+use App\Notifications\RequisitionStatusChanged;
 use Illuminate\Support\Facades\DB;
 
 class ProcurementService
@@ -39,6 +42,10 @@ class ProcurementService
 
             $requisition->update(['total_amount' => $totalAmount]);
             $requisition->refresh();
+
+            // Notify all admins and managers that a new requisition needs approval
+            User::role(['admin', 'manager'])->get()
+                ->each(fn($user) => $user->notify(new RequisitionCreated($requisition)));
 
             return $requisition;
         });
@@ -91,9 +98,9 @@ class ProcurementService
      */
     public function approveRequisition(PurchaseRequisition $requisition, User $approver): PurchaseRequisition
     {
-        if ($requisition->status !== 'pending_approval') {
+        if ($requisition->status?->value !== 'pending_approval') {
             throw new \InvalidArgumentException(
-                "Requisition #{$requisition->requisition_number} cannot be approved. Current status: {$requisition->status}"
+                "Requisition #{$requisition->requisition_number} cannot be approved. Current status: {$requisition->status?->value}"
             );
         }
 
@@ -104,6 +111,10 @@ class ProcurementService
         ]);
 
         $requisition->refresh();
+
+        // Notify the requester
+        $requester = User::find($requisition->requested_by);
+        $requester?->notify(new RequisitionStatusChanged($requisition));
 
         return $requisition;
     }
@@ -120,9 +131,9 @@ class ProcurementService
      */
     public function rejectRequisition(PurchaseRequisition $requisition, User $approver, string $reason): PurchaseRequisition
     {
-        if ($requisition->status !== 'pending_approval') {
+        if ($requisition->status?->value !== 'pending_approval') {
             throw new \InvalidArgumentException(
-                "Requisition #{$requisition->requisition_number} cannot be rejected. Current status: {$requisition->status}"
+                "Requisition #{$requisition->requisition_number} cannot be rejected. Current status: {$requisition->status?->value}"
             );
         }
 
@@ -134,6 +145,10 @@ class ProcurementService
         ]);
 
         $requisition->refresh();
+
+        // Notify the requester
+        $requester = User::find($requisition->requested_by);
+        $requester?->notify(new RequisitionStatusChanged($requisition));
 
         return $requisition;
     }
@@ -195,9 +210,9 @@ class ProcurementService
      */
     public function approvePurchaseOrder(PurchaseOrder $po, User $approver): PurchaseOrder
     {
-        if ($po->status !== 'pending_approval') {
+        if (!in_array($po->status?->value, ['draft', 'pending_approval'])) {
             throw new \InvalidArgumentException(
-                "Purchase Order #{$po->po_number} cannot be approved. Current status: {$po->status}"
+                "Purchase Order #{$po->po_number} cannot be approved. Current status: {$po->status?->value}"
             );
         }
 
@@ -208,6 +223,10 @@ class ProcurementService
         ]);
 
         $po->refresh();
+
+        // Notify the PO creator
+        $creator = User::find($po->created_by);
+        $creator?->notify(new PurchaseOrderStatusChanged($po));
 
         return $po;
     }
@@ -223,9 +242,9 @@ class ProcurementService
      */
     public function convertRequisitionToPo(PurchaseRequisition $requisition, int $vendorId): PurchaseOrder
     {
-        if ($requisition->status !== 'approved') {
+        if ($requisition->status?->value !== 'approved') {
             throw new \InvalidArgumentException(
-                "Only approved requisitions can be converted to purchase orders. Current status: {$requisition->status}"
+                "Only approved requisitions can be converted to purchase orders. Current status: {$requisition->status?->value}"
             );
         }
 

@@ -31,7 +31,7 @@ class VendorService
      */
     public function approveVendor(Vendor $vendor): Vendor
     {
-        if (!in_array($vendor->status->value ?? $vendor->status, ['pending', 'under_review'])) {
+        if (!in_array($vendor->status->value ?? $vendor->status, ['pending', 'under_review', 'suspended'])) {
             throw new \InvalidArgumentException(
                 "Vendor '{$vendor->name}' cannot be approved. Current status: " . ($vendor->status->value ?? $vendor->status)
             );
@@ -58,7 +58,7 @@ class VendorService
     {
         $currentStatus = $vendor->status->value ?? $vendor->status;
 
-        if (in_array($currentStatus, ['suspended', 'blacklisted'])) {
+        if (in_array($currentStatus, ['suspended', 'blacklisted', 'inactive'])) {
             throw new \InvalidArgumentException(
                 "Vendor '{$vendor->name}' is already suspended or blacklisted."
             );

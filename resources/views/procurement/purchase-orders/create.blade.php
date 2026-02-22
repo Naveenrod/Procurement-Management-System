@@ -38,6 +38,13 @@
                     <h3 class="font-semibold text-gray-800">Line Items</h3>
                     <button type="button" @click="items.push({ product_id: '', quantity: 1, unit_price: 0 })" class="text-sm text-blue-600 hover:underline">+ Add Item</button>
                 </div>
+                <div class="grid grid-cols-12 gap-2 mb-1 text-xs font-medium text-gray-500 uppercase px-1">
+                    <div class="col-span-5">Product</div>
+                    <div class="col-span-2">Quantity</div>
+                    <div class="col-span-3">Unit Price</div>
+                    <div class="col-span-1">Total</div>
+                    <div class="col-span-1"></div>
+                </div>
                 <template x-for="(item, index) in items" :key="index">
                     <div class="grid grid-cols-12 gap-2 mb-3">
                         <div class="col-span-5">

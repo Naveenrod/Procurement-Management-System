@@ -1,10 +1,6 @@
 <x-app-layout>
     <x-slot name="title">Shipping</x-slot>
     <div class="py-6">
-        @if(session('success'))
-        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm">{{ session('success') }}</div>
-        @endif
-
         @if($orders->count())
         @php
             $readyCount = $orders->where('status->value', 'packing')->count() ?: $orders->filter(fn($o) => $o->getRawOriginal('status') === 'packing')->count();

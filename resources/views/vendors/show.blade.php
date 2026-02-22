@@ -9,14 +9,19 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <x-status-badge :status="$vendor->status" />
-                    @if($vendor->status === 'pending')
+                    @if($vendor->status?->value === 'pending')
                     <form method="POST" action="{{ route('vendors.approve', $vendor) }}">@csrf
-                        <button class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md">Approve</button>
+                        <button class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700">Approve</button>
                     </form>
                     @endif
-                    @if($vendor->status === 'active')
+                    @if($vendor->status?->value === 'pending' || $vendor->status?->value === 'approved')
                     <form method="POST" action="{{ route('vendors.suspend', $vendor) }}">@csrf
-                        <button class="px-3 py-1.5 bg-red-600 text-white text-sm rounded-md">Suspend</button>
+                        <button class="px-3 py-1.5 bg-red-600 text-white text-sm rounded-md hover:bg-red-700">Reject</button>
+                    </form>
+                    @endif
+                    @if($vendor->status?->value === 'suspended')
+                    <form method="POST" action="{{ route('vendors.approve', $vendor) }}">@csrf
+                        <button class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700">Reinstate</button>
                     </form>
                     @endif
                     <a href="{{ route('vendors.edit', $vendor) }}" class="px-3 py-1.5 border rounded-md text-sm text-gray-700 hover:bg-gray-50">Edit</a>

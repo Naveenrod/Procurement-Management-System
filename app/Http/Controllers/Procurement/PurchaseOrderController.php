@@ -3,10 +3,12 @@ namespace App\Http\Controllers\Procurement;
 
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseOrder;
+use App\Models\User;
 use App\Models\Vendor;
 use App\Models\Product;
 use App\Models\Warehouse;
 use App\Models\WarehouseOrder;
+use App\Notifications\PurchaseOrderStatusChanged;
 use App\Services\ProcurementService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -84,15 +86,41 @@ class PurchaseOrderController extends Controller
         return redirect()->route('procurement.purchase-orders.index')->with('success', 'Purchase order deleted.');
     }
 
+    public function reject(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse
+    {
+        $request->validate([
+            'rejection_reason' => 'required|string|max:1000',
+        ]);
+
+        if (!in_array($purchaseOrder->status?->value, ['draft', 'pending_approval', 'approved'])) {
+            return back()->with('error', 'Only draft, pending, or approved POs can be rejected.');
+        }
+
+        $purchaseOrder->update([
+            'status'           => 'rejected',
+            'rejection_reason' => $request->rejection_reason,
+            'rejected_by'      => auth()->id(),
+            'rejected_at'      => now(),
+        ]);
+
+        return redirect()->route('procurement.purchase-orders.show', $purchaseOrder)
+            ->with('error', 'Purchase order has been rejected.');
+    }
+
     public function approve(PurchaseOrder $purchaseOrder): RedirectResponse
     {
-        $this->procurementService->approvePurchaseOrder($purchaseOrder);
+        $this->procurementService->approvePurchaseOrder($purchaseOrder, auth()->user());
         return redirect()->route('procurement.purchase-orders.show', $purchaseOrder)->with('success', 'Purchase order approved.');
     }
 
     public function send(PurchaseOrder $purchaseOrder): RedirectResponse
     {
         $purchaseOrder->update(['status' => 'sent']);
+        $purchaseOrder->refresh();
+
+        // Notify the PO creator that it has been sent
+        $creator = User::find($purchaseOrder->created_by);
+        $creator?->notify(new PurchaseOrderStatusChanged($purchaseOrder));
 
         // Auto-create an inbound warehouse order so the WMS receiving queue is populated
         $warehouse = Warehouse::where('is_active', true)->first();

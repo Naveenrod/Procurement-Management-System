@@ -12,7 +12,12 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Department *</label>
-                        <input type="text" name="department" value="{{ old('department') }}" required class="w-full border rounded-md px-3 py-2 text-sm">
+                        <select name="department" required class="w-full border rounded-md px-3 py-2 text-sm">
+                            <option value="">Select Department</option>
+                            @foreach(config('departments') as $dept)
+                            <option value="{{ $dept }}" @selected(old('department') === $dept)>{{ $dept }}</option>
+                            @endforeach
+                        </select>
                         <x-input-error :messages="$errors->get('department')" class="mt-1" />
                     </div>
                     <div>
@@ -38,6 +43,13 @@
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-semibold text-gray-800">Line Items</h3>
                     <button type="button" @click="items.push({ product_id: '', quantity: 1, estimated_unit_price: 0, specifications: '' })" class="text-sm text-blue-600 hover:underline">+ Add Item</button>
+                </div>
+                <div class="grid grid-cols-12 gap-2 mb-1 text-xs font-medium text-gray-500 uppercase px-1">
+                    <div class="col-span-4">Product</div>
+                    <div class="col-span-2">Quantity</div>
+                    <div class="col-span-2">Unit Price</div>
+                    <div class="col-span-3">Specifications</div>
+                    <div class="col-span-1"></div>
                 </div>
                 <template x-for="(item, index) in items" :key="index">
                     <div class="grid grid-cols-12 gap-2 mb-3 items-start">

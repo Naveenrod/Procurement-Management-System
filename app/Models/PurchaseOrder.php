@@ -30,6 +30,9 @@ class PurchaseOrder extends Model
         'created_by',
         'approved_by',
         'approved_at',
+        'rejection_reason',
+        'rejected_by',
+        'rejected_at',
     ];
 
     protected function casts(): array
@@ -42,6 +45,7 @@ class PurchaseOrder extends Model
             'tax_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
             'approved_at' => 'datetime',
+            'rejected_at' => 'datetime',
         ];
     }
 
@@ -98,5 +102,10 @@ class PurchaseOrder extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function rejecter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
     }
 }

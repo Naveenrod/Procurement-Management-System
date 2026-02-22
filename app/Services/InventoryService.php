@@ -27,7 +27,7 @@ class InventoryService
     public function adjustStock(
         Product $product,
         Warehouse $warehouse,
-        int $quantity,
+        float $quantity,
         string $type,
         ?string $notes = null
     ): Inventory {
@@ -40,7 +40,6 @@ class InventoryService
                 [
                     'quantity_on_hand' => 0,
                     'quantity_reserved' => 0,
-                    'quantity_available' => 0,
                 ]
             );
 
@@ -55,20 +54,14 @@ class InventoryService
 
             $inventory->update([
                 'quantity_on_hand' => $newQuantity,
-                'quantity_available' => $newQuantity - $inventory->quantity_reserved,
             ]);
 
             // Log the inventory transaction
             InventoryTransaction::create([
                 'inventory_id' => $inventory->id,
-                'product_id' => $product->id,
-                'warehouse_id' => $warehouse->id,
-                'type' => $type,
-                'quantity' => $quantity,
-                'quantity_before' => $previousQuantity,
-                'quantity_after' => $newQuantity,
-                'notes' => $notes,
-                'transaction_date' => now(),
+                'type'         => $type,
+                'quantity'     => $quantity,
+                'notes'        => $notes,
             ]);
 
             $inventory->refresh();

@@ -71,11 +71,17 @@
     </aside>
 
     <div class="flex-1 flex flex-col overflow-hidden">
-        <header class="h-16 bg-white border-b border-gray-200 flex items-center px-6 gap-4 flex-shrink-0 z-10">
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center px-6 gap-4 flex-shrink-0 z-10 relative">
             <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 hover:text-gray-700">
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
-            <form action="{{ route('search') }}" method="GET" class="flex-1 max-w-md">
+            @if(!request()->routeIs('dashboard'))
+            <button onclick="history.back()" class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Back
+            </button>
+            @endif
+            <form action="{{ route('search') }}" method="GET" class="absolute left-1/2 -translate-x-1/2 w-full max-w-md">
                 <input type="text" name="q" placeholder="Search..." class="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request('q') }}">
             </form>
             <div class="ml-auto flex items-center gap-3">
@@ -91,8 +97,16 @@
                         </div>
                         <div class="max-h-64 overflow-y-auto">
                             @forelse($unreadNotifications ?? [] as $n)
-                            <div class="px-4 py-3 border-b hover:bg-gray-50 text-sm"><p>{{ $n->data['message'] ?? 'Notification' }}</p><p class="text-xs text-gray-400 mt-0.5">{{ $n->created_at->diffForHumans() }}</p></div>
-                            @empty<p class="px-4 py-3 text-sm text-gray-500">No new notifications</p>@endforelse
+                            <form method="POST" action="{{ route('notifications.read', $n->id) }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-3 border-b hover:bg-indigo-50 text-sm block">
+                                    <p class="text-gray-800">{{ $n->data['message'] ?? 'Notification' }}</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">{{ $n->created_at->diffForHumans() }}</p>
+                                </button>
+                            </form>
+                            @empty
+                            <p class="px-4 py-3 text-sm text-gray-500">No new notifications</p>
+                            @endforelse
                         </div>
                     </div>
                 </div>

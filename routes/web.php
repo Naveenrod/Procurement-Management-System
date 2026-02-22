@@ -69,8 +69,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Mark notification as read
     Route::post('/notifications/{id}/read', function ($id) {
-        auth()->user()->notifications()->where('id', $id)->first()?->markAsRead();
-        return back();
+        $notification = auth()->user()->notifications()->where('id', $id)->first();
+        $url = $notification?->data['url'] ?? null;
+        $notification?->markAsRead();
+        return $url ? redirect($url) : back();
     })->name('notifications.read');
     Route::post('/notifications/read-all', function () {
         auth()->user()->unreadNotifications->markAsRead();
@@ -81,6 +83,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:admin|manager|buyer'])->prefix('procurement')->name('procurement.')->group(function () {
         // Purchase Requisitions
         Route::resource('requisitions', PurchaseRequisitionController::class);
+        Route::post('requisitions/{requisition}/submit', [PurchaseRequisitionController::class, 'submit'])->name('requisitions.submit');
         Route::post('requisitions/{requisition}/approve', [PurchaseRequisitionController::class, 'approve'])->name('requisitions.approve');
         Route::post('requisitions/{requisition}/reject', [PurchaseRequisitionController::class, 'reject'])->name('requisitions.reject');
         Route::post('requisitions/{requisition}/convert-to-po', [PurchaseRequisitionController::class, 'convertToPo'])->name('requisitions.convert-to-po');
@@ -95,6 +98,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('purchase-orders', PurchaseOrderController::class);
         Route::post('purchase-orders/{purchase_order}/approve', [PurchaseOrderController::class, 'approve'])->name('purchase-orders.approve');
         Route::post('purchase-orders/{purchase_order}/send', [PurchaseOrderController::class, 'send'])->name('purchase-orders.send');
+        Route::post('purchase-orders/{purchase_order}/reject', [PurchaseOrderController::class, 'reject'])->name('purchase-orders.reject')->middleware('role:admin|manager');
 
         // Goods Receipts
         Route::resource('goods-receipts', GoodsReceiptController::class);

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\GoodsReceipt;
+use App\Models\GoodsReceiptItem;
 use App\Models\PurchaseOrder;
 use App\Models\Warehouse;
 use App\Models\WarehouseLocation;
@@ -12,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 class WarehouseService
 {
+    public function __construct(private readonly InventoryService $inventoryService) {}
     /**
      * Create an inbound warehouse order from a purchase order.
      *
@@ -63,9 +66,72 @@ class WarehouseService
             }
 
             $allReceived = $order->items()->where('status', '!=', 'received')->doesntExist();
-
             $order->update(['status' => $allReceived ? 'putaway' : 'receiving']);
+
+            // Auto-create a Goods Receipt and update inventory if linked to a PO
+            if ($order->purchase_order_id) {
+                $this->createGoodsReceiptFromWarehouseOrder($order);
+            }
         });
+    }
+
+    private function createGoodsReceiptFromWarehouseOrder(WarehouseOrder $order): void
+    {
+        $order->load(['items.product', 'purchaseOrder.items', 'warehouse']);
+        $po        = $order->purchaseOrder;
+        $warehouse = $order->warehouse;
+
+        if (!$po || !$warehouse) return;
+
+        $receipt = GoodsReceipt::create([
+            'purchase_order_id' => $po->id,
+            'received_by'       => auth()->id(),
+            'received_at'       => now(),
+            'status'            => 'complete',
+            'notes'             => "Auto-created from Warehouse Order {$order->order_number}",
+        ]);
+
+        foreach ($order->items as $orderItem) {
+            $receivedQty = (float) ($orderItem->received_quantity ?? $orderItem->expected_quantity);
+            if ($receivedQty <= 0) continue;
+
+            $poItem = $po->items->firstWhere('product_id', $orderItem->product_id);
+            if (!$poItem) continue;
+
+            GoodsReceiptItem::create([
+                'goods_receipt_id'       => $receipt->id,
+                'purchase_order_item_id' => $poItem->id,
+                'quantity_received'      => $receivedQty,
+                'quantity_accepted'      => $receivedQty,
+                'quantity_rejected'      => 0,
+            ]);
+
+            // Update inventory
+            $this->inventoryService->adjustStock(
+                $orderItem->product,
+                $warehouse,
+                $receivedQty,
+                'received',
+                "Warehouse Order {$order->order_number} — PO {$po->po_number}"
+            );
+
+            // Update PO item received_quantity
+            $totalReceived = GoodsReceiptItem::whereHas('goodsReceipt', fn($q) => $q->where('purchase_order_id', $po->id))
+                ->where('purchase_order_item_id', $poItem->id)
+                ->sum('quantity_accepted');
+            $poItem->update(['received_quantity' => $totalReceived]);
+        }
+
+        // Update PO status
+        $po->refresh()->load('items');
+        $fullyReceived     = $po->items->every(fn($i) => $i->received_quantity >= $i->quantity);
+        $partiallyReceived = $po->items->some(fn($i) => $i->received_quantity > 0);
+
+        if ($fullyReceived) {
+            $po->update(['status' => 'received']);
+        } elseif ($partiallyReceived) {
+            $po->update(['status' => 'partially_received']);
+        }
     }
 
     /**

@@ -1,9 +1,6 @@
 <x-app-layout>
     <x-slot name="title">Picking</x-slot>
     <div class="py-6">
-        @if(session('success'))
-        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm">{{ session('success') }}</div>
-        @endif
         @if($errors->any())
         <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
             <ul class="list-disc list-inside space-y-1">

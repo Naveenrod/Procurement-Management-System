@@ -9,12 +9,12 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <x-status-badge :status="$invoice->status" />
-                    @if($invoice->three_way_match_status === 'pending')
+                    @if($invoice->status?->value === 'pending')
                     <form method="POST" action="{{ route('procurement.invoices.match', $invoice) }}">@csrf
                         <button class="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-md">Run 3-Way Match</button>
                     </form>
                     @endif
-                    @if($invoice->three_way_match_status === 'matched' && $invoice->status === 'pending' && auth()->user()->hasRole(['admin','manager']))
+                    @if(in_array($invoice->status?->value, ['pending', 'matched']) && auth()->user()->hasRole(['admin', 'manager']))
                     <form method="POST" action="{{ route('procurement.invoices.approve', $invoice) }}">@csrf
                         <button class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md">Approve</button>
                     </form>

@@ -11,6 +11,7 @@ enum PurchaseOrderStatus: string
     case PartiallyReceived = 'partially_received';
     case Received = 'received';
     case Cancelled = 'cancelled';
+    case Rejected = 'rejected';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum PurchaseOrderStatus: string
             self::PartiallyReceived => 'Partially Received',
             self::Received => 'Received',
             self::Cancelled => 'Cancelled',
+            self::Rejected => 'Rejected',
         };
     }
 
@@ -35,6 +37,7 @@ enum PurchaseOrderStatus: string
             self::PartiallyReceived => 'orange',
             self::Received => 'green',
             self::Cancelled => 'red',
+            self::Rejected => 'red',
         };
     }
 }

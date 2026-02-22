@@ -107,6 +107,19 @@ class PurchaseRequisitionController extends Controller
             ->with('success', 'Purchase requisition deleted successfully.');
     }
 
+    public function submit(PurchaseRequisition $requisition): RedirectResponse
+    {
+        if ($requisition->status?->value !== 'draft') {
+            return back()->with('error', 'Only draft requisitions can be submitted for approval.');
+        }
+
+        $requisition->update(['status' => 'pending_approval']);
+
+        return redirect()
+            ->route('procurement.requisitions.show', $requisition)
+            ->with('success', 'Requisition submitted for approval.');
+    }
+
     public function approve(Request $request, PurchaseRequisition $requisition): RedirectResponse
     {
         $request->validate([
