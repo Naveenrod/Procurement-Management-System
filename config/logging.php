@@ -58,6 +58,16 @@ return [
             'ignore_exceptions' => false,
         ],
 
+        // Production stack: daily log files + Slack alerts for critical errors
+        'production' => [
+            'driver' => 'stack',
+            'channels' => array_filter([
+                'daily',
+                env('LOG_SLACK_WEBHOOK_URL') ? 'slack' : null,
+            ]),
+            'ignore_exceptions' => false,
+        ],
+
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),

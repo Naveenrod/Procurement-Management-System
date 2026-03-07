@@ -10,6 +10,7 @@ use App\Models\Warehouse;
 use App\Models\WarehouseOrder;
 use App\Notifications\PurchaseOrderStatusChanged;
 use App\Services\ProcurementService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,6 +21,8 @@ class PurchaseOrderController extends Controller
 
     public function index(Request $request): View
     {
+        $this->authorize('viewAny', PurchaseOrder::class);
+
         $orders = PurchaseOrder::with('vendor')
             ->when($request->search, fn($q, $s) => $q->where('po_number', 'like', "%$s%")
                 ->orWhereHas('vendor', fn($q) => $q->where('name', 'like', "%$s%")))
@@ -30,6 +33,8 @@ class PurchaseOrderController extends Controller
 
     public function create(): View
     {
+        $this->authorize('create', PurchaseOrder::class);
+
         $vendors = Vendor::where('status', 'approved')->get();
         $products = Product::orderBy('name')->get();
         return view('procurement.purchase-orders.create', compact('vendors', 'products'));
@@ -37,6 +42,8 @@ class PurchaseOrderController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', PurchaseOrder::class);
+
         $validated = $request->validate([
             'vendor_id' => 'required|exists:vendors,id',
             'expected_delivery_date' => 'nullable|date',
@@ -55,6 +62,8 @@ class PurchaseOrderController extends Controller
 
     public function show(PurchaseOrder $purchaseOrder): View
     {
+        $this->authorize('view', $purchaseOrder);
+
         $purchaseOrder->load(['vendor', 'items.product', 'creator', 'approver', 'goodsReceipts', 'invoices']);
         $order = $purchaseOrder;
         return view('procurement.purchase-orders.show', compact('order'));
@@ -62,6 +71,8 @@ class PurchaseOrderController extends Controller
 
     public function edit(PurchaseOrder $purchaseOrder): View
     {
+        $this->authorize('update', $purchaseOrder);
+
         $vendors = Vendor::where('status', 'approved')->get();
         $products = Product::orderBy('name')->get();
         $purchaseOrder->load('items');
@@ -71,6 +82,8 @@ class PurchaseOrderController extends Controller
 
     public function update(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
+        $this->authorize('update', $purchaseOrder);
+
         $validated = $request->validate([
             'vendor_id' => 'required|exists:vendors,id',
             'expected_delivery_date' => 'nullable|date',
@@ -82,12 +95,16 @@ class PurchaseOrderController extends Controller
 
     public function destroy(PurchaseOrder $purchaseOrder): RedirectResponse
     {
+        $this->authorize('delete', $purchaseOrder);
+
         $purchaseOrder->delete();
         return redirect()->route('procurement.purchase-orders.index')->with('success', 'Purchase order deleted.');
     }
 
     public function reject(Request $request, PurchaseOrder $purchaseOrder): RedirectResponse
     {
+        $this->authorize('reject', $purchaseOrder);
+
         $request->validate([
             'rejection_reason' => 'required|string|max:1000',
         ]);
@@ -109,12 +126,25 @@ class PurchaseOrderController extends Controller
 
     public function approve(PurchaseOrder $purchaseOrder): RedirectResponse
     {
+        $this->authorize('approve', $purchaseOrder);
+
         $this->procurementService->approvePurchaseOrder($purchaseOrder, auth()->user());
         return redirect()->route('procurement.purchase-orders.show', $purchaseOrder)->with('success', 'Purchase order approved.');
     }
 
+    public function exportPdf(PurchaseOrder $purchaseOrder): \Illuminate\Http\Response
+    {
+        $this->authorize('exportPdf', $purchaseOrder);
+
+        $purchaseOrder->load(['vendor', 'items.product', 'creator', 'approver']);
+        $pdf = Pdf::loadView('procurement.purchase-orders.pdf', ['order' => $purchaseOrder]);
+        return $pdf->download($purchaseOrder->po_number . '.pdf');
+    }
+
     public function send(PurchaseOrder $purchaseOrder): RedirectResponse
     {
+        $this->authorize('send', $purchaseOrder);
+
         $purchaseOrder->update(['status' => 'sent']);
         $purchaseOrder->refresh();
 

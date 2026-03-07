@@ -95,6 +95,19 @@ class DashboardService
         return $data;
     }
 
+    public function getSpendByMonthForYear(int $year): array
+    {
+        $data = [];
+        for ($month = 1; $month <= 12; $month++) {
+            $spend = PurchaseOrder::whereYear('order_date', $year)
+                ->whereMonth('order_date', $month)
+                ->whereNotIn('status', ['draft', 'cancelled'])
+                ->sum('total_amount');
+            $data[] = (float) $spend;
+        }
+        return $data;
+    }
+
     private function getLowStockCount(): int
     {
         return Inventory::join('products', 'inventory.product_id', '=', 'products.id')

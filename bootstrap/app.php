@@ -19,6 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', \App\Http\Middleware\ShareNotifications::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Report to Sentry when configured
+        $exceptions->report(function (\Throwable $e): void {
+            if (app()->bound('sentry') && app()->environment('production')) {
+                app('sentry')->captureException($e);
+            }
+        });
+
         $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) {
             if ($request->is('api/*')) {
                 return response()->json(['message' => 'Not Found'], 404);

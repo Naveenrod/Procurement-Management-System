@@ -18,6 +18,8 @@ class PurchaseRequisitionController extends Controller
 
     public function index(Request $request): View
     {
+        $this->authorize('viewAny', PurchaseRequisition::class);
+
         $requisitions = PurchaseRequisition::query()
             ->when($request->input('status'), fn ($query, $status) => $query->where('status', $status))
             ->when($request->input('priority'), fn ($query, $priority) => $query->where('priority', $priority))
@@ -29,6 +31,8 @@ class PurchaseRequisitionController extends Controller
 
     public function create(): View
     {
+        $this->authorize('create', PurchaseRequisition::class);
+
         $products = Product::where('is_active', true)->orderBy('name')->get();
 
         return view('procurement.requisitions.create', compact('products'));
@@ -36,6 +40,8 @@ class PurchaseRequisitionController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', PurchaseRequisition::class);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'department' => 'required|string|max:255',
@@ -64,6 +70,8 @@ class PurchaseRequisitionController extends Controller
 
     public function show(PurchaseRequisition $requisition): View
     {
+        $this->authorize('view', $requisition);
+
         $requisition->load(['items.product', 'creator', 'approver']);
 
         return view('procurement.requisitions.show', compact('requisition'));
@@ -71,6 +79,8 @@ class PurchaseRequisitionController extends Controller
 
     public function edit(PurchaseRequisition $requisition): View
     {
+        $this->authorize('update', $requisition);
+
         $requisition->load('items');
 
         return view('procurement.requisitions.edit', compact('requisition'));
@@ -78,6 +88,8 @@ class PurchaseRequisitionController extends Controller
 
     public function update(Request $request, PurchaseRequisition $requisition): RedirectResponse
     {
+        $this->authorize('update', $requisition);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'department' => 'required|string|max:255',
@@ -100,6 +112,8 @@ class PurchaseRequisitionController extends Controller
 
     public function destroy(PurchaseRequisition $requisition): RedirectResponse
     {
+        $this->authorize('delete', $requisition);
+
         $requisition->delete();
 
         return redirect()
@@ -109,6 +123,8 @@ class PurchaseRequisitionController extends Controller
 
     public function submit(PurchaseRequisition $requisition): RedirectResponse
     {
+        $this->authorize('submit', $requisition);
+
         if ($requisition->status?->value !== 'draft') {
             return back()->with('error', 'Only draft requisitions can be submitted for approval.');
         }
@@ -122,6 +138,8 @@ class PurchaseRequisitionController extends Controller
 
     public function approve(Request $request, PurchaseRequisition $requisition): RedirectResponse
     {
+        $this->authorize('approve', $requisition);
+
         $request->validate([
             'remarks' => 'nullable|string|max:500',
         ]);
@@ -135,6 +153,8 @@ class PurchaseRequisitionController extends Controller
 
     public function reject(Request $request, PurchaseRequisition $requisition): RedirectResponse
     {
+        $this->authorize('reject', $requisition);
+
         $request->validate([
             'rejection_reason' => 'required|string|max:500',
         ]);
@@ -148,6 +168,8 @@ class PurchaseRequisitionController extends Controller
 
     public function convertToPo(Request $request, PurchaseRequisition $requisition): RedirectResponse
     {
+        $this->authorize('convertToPo', $requisition);
+
         $request->validate([
             'vendor_id' => 'required|integer|exists:vendors,id',
             'delivery_date' => 'nullable|date|after:today',

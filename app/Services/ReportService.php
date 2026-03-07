@@ -173,7 +173,7 @@ class ReportService
         return PurchaseOrder::join('vendors', 'purchase_orders.vendor_id', '=', 'vendors.id')
             ->whereNotIn('purchase_orders.status', ['draft', 'cancelled'])
             ->groupBy('vendors.id', 'vendors.name')
-            ->select('vendors.name', DB::raw('SUM(purchase_orders.total_amount) as total'), DB::raw('COUNT(*) as po_count'))
+            ->select('vendors.name as vendor_name', DB::raw('SUM(purchase_orders.total_amount) as total'), DB::raw('COUNT(*) as count'))
             ->orderByDesc('total')
             ->limit(10)
             ->get();

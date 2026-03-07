@@ -44,6 +44,7 @@ use App\Http\Controllers\SupplierPortal\SupplierRfqController;
 use App\Http\Controllers\SupplierPortal\SupplierPerformanceController;
 use App\Http\Controllers\SupplierPortal\SupplierProfileController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ProfileController;
 
 // Welcome page
@@ -51,16 +52,24 @@ Route::get('/', function () {
     return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
-// Quick login route (for testing)
-Route::post('/quick-login', [AuthenticatedSessionController::class, 'quickLogin'])
-    ->name('quick-login')
-    ->middleware('guest');
+// Quick login — local/testing only (controller also enforces this via abort_unless)
+if (app()->environment('local', 'testing')) {
+    Route::post('/quick-login', [AuthenticatedSessionController::class, 'quickLogin'])
+        ->name('quick-login')
+        ->middleware('guest');
+}
 
 // Authenticated routes
 Route::middleware(['auth'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Calendar
+    Route::middleware(['role:admin|manager|buyer'])->group(function () {
+        Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+        Route::get('/calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
+    });
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -93,12 +102,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('rfqs/{rfq}/publish', [RfqController::class, 'publish'])->name('rfqs.publish');
         Route::post('rfqs/{rfq}/close', [RfqController::class, 'close'])->name('rfqs.close');
         Route::post('rfqs/{rfq}/award', [RfqController::class, 'award'])->name('rfqs.award');
+        Route::get('rfqs/{rfq}/pdf', [RfqController::class, 'exportPdf'])->name('rfqs.pdf');
 
         // Purchase Orders
         Route::resource('purchase-orders', PurchaseOrderController::class);
         Route::post('purchase-orders/{purchase_order}/approve', [PurchaseOrderController::class, 'approve'])->name('purchase-orders.approve');
         Route::post('purchase-orders/{purchase_order}/send', [PurchaseOrderController::class, 'send'])->name('purchase-orders.send');
         Route::post('purchase-orders/{purchase_order}/reject', [PurchaseOrderController::class, 'reject'])->name('purchase-orders.reject')->middleware('role:admin|manager');
+        Route::get('purchase-orders/{purchase_order}/pdf', [PurchaseOrderController::class, 'exportPdf'])->name('purchase-orders.pdf');
 
         // Goods Receipts
         Route::resource('goods-receipts', GoodsReceiptController::class);
@@ -107,6 +118,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('invoices', InvoiceController::class);
         Route::post('invoices/{invoice}/match', [InvoiceController::class, 'threeWayMatch'])->name('invoices.match');
         Route::post('invoices/{invoice}/approve', [InvoiceController::class, 'approve'])->name('invoices.approve');
+        Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'exportPdf'])->name('invoices.pdf');
 
         // Budgets
         Route::resource('budgets', BudgetController::class);
@@ -134,6 +146,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('contracts', ContractController::class);
         Route::post('contracts/{contract}/approve', [ContractController::class, 'approve'])->name('contracts.approve');
         Route::post('contracts/{contract}/terminate', [ContractController::class, 'terminate'])->name('contracts.terminate');
+        Route::get('contracts/{contract}/pdf', [ContractController::class, 'exportPdf'])->name('contracts.pdf');
 
         // Vendor Performance
         Route::get('vendors/{vendor}/performance', [VendorPerformanceController::class, 'index'])->name('vendors.performance.index');

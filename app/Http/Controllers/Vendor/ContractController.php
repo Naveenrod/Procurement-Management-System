@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Contract;
 use App\Models\Vendor;
 use App\Enums\ContractStatus;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -56,6 +57,13 @@ class ContractController extends Controller
     {
         $contract->delete();
         return redirect()->route('contracts.index')->with('success', 'Contract deleted.');
+    }
+
+    public function exportPdf(Contract $contract): \Illuminate\Http\Response
+    {
+        $contract->load(['vendor', 'creator', 'approver']);
+        $pdf = Pdf::loadView('contracts.pdf', compact('contract'));
+        return $pdf->download($contract->contract_number . '.pdf');
     }
 
     public function approve(Contract $contract): RedirectResponse

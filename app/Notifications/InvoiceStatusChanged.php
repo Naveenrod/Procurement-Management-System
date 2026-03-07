@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Invoice;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class InvoiceStatusChanged extends Notification
@@ -14,12 +15,30 @@ class InvoiceStatusChanged extends Notification
         private readonly Invoice $invoice
     ) {}
 
-    public function via(): array
+    public function via(object $notifiable): array
     {
-        return ['database'];
+        $channels = ['database'];
+        if (config('mail.default') !== 'log' && $notifiable->email) {
+            $channels[] = 'mail';
+        }
+        return $channels;
     }
 
-    public function toArray(): array
+    public function toMail(object $notifiable): MailMessage
+    {
+        $status = $this->invoice->status?->value ?? 'updated';
+
+        return (new MailMessage)
+            ->subject("Invoice {$this->invoice->invoice_number} {$status}")
+            ->greeting("Hello {$notifiable->name},")
+            ->line("Invoice **{$this->invoice->invoice_number}** has been **{$status}**.")
+            ->line("**Vendor:** {$this->invoice->vendor?->name}")
+            ->line("**Amount:** $" . number_format($this->invoice->total_amount, 2))
+            ->action('View Invoice', route('procurement.invoices.show', $this->invoice))
+            ->line('Thank you for using ProcureMS.');
+    }
+
+    public function toArray(object $notifiable): array
     {
         $status = $this->invoice->status?->value ?? 'updated';
 

@@ -9,6 +9,10 @@
                     <p class="text-sm text-gray-500 mt-1">{{ optional($order->vendor)->name }}</p>
                 </div>
                 <div class="flex items-center gap-3">
+                    <a href="{{ route('procurement.purchase-orders.pdf', $order) }}"
+                       class="px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700">
+                        Download PDF
+                    </a>
                     <x-status-badge :status="$order->status" />
 
                     @if(in_array($order->status?->value, ['draft', 'pending_approval']) && auth()->user()->hasRole(['admin', 'manager']))

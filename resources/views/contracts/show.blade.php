@@ -8,13 +8,17 @@
                     <p class="text-sm text-gray-500 mt-1">{{ $contract->contract_number }} · {{ optional($contract->vendor)->name }}</p>
                 </div>
                 <div class="flex items-center gap-3">
+                    <a href="{{ route('contracts.pdf', $contract) }}"
+                       class="px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700">
+                        Download PDF
+                    </a>
                     <x-status-badge :status="$contract->status" />
-                    @if($contract->status === 'draft')
+                    @if($contract->status?->value === 'draft')
                     <form method="POST" action="{{ route('contracts.approve', $contract) }}">@csrf
                         <button class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md">Approve</button>
                     </form>
                     @endif
-                    @if($contract->status === 'active')
+                    @if($contract->status?->value === 'active')
                     <form method="POST" action="{{ route('contracts.terminate', $contract) }}" onsubmit="return confirm('Terminate this contract?')">@csrf
                         <button class="px-3 py-1.5 bg-red-600 text-white text-sm rounded-md">Terminate</button>
                     </form>

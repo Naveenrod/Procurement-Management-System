@@ -8,13 +8,17 @@
                     <p class="text-sm text-gray-500 mt-1">{{ $rfq->rfq_number }} · Closes {{ optional($rfq->closing_date)->format('M d, Y') }}</p>
                 </div>
                 <div class="flex items-center gap-3">
+                    <a href="{{ route('procurement.rfqs.pdf', $rfq) }}"
+                       class="px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700">
+                        Download PDF
+                    </a>
                     <x-status-badge :status="$rfq->status" />
-                    @if($rfq->status === 'draft')
+                    @if($rfq->status?->value === 'draft')
                     <form method="POST" action="{{ route('procurement.rfqs.publish', $rfq) }}">@csrf
                         <button class="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md">Publish</button>
                     </form>
                     @endif
-                    @if($rfq->status === 'published')
+                    @if($rfq->status?->value === 'published')
                     <form method="POST" action="{{ route('procurement.rfqs.close', $rfq) }}">@csrf
                         <button class="px-3 py-1.5 bg-gray-600 text-white text-sm rounded-md">Close</button>
                     </form>
@@ -47,7 +51,7 @@
                         <td class="px-4 py-3 text-gray-500">{{ $response->payment_terms ?? '—' }}</td>
                         <td class="px-4 py-3 text-center">{{ $response->is_selected ? '✓' : '' }}</td>
                         <td class="px-4 py-3">
-                            @if($rfq->status === 'closed' && !$rfq->responses->where('is_selected', true)->count())
+                            @if($rfq->status?->value === 'closed' && !$rfq->responses->where('is_selected', true)->count())
                             <form method="POST" action="{{ route('procurement.rfqs.award', $rfq) }}">@csrf
                                 <input type="hidden" name="response_id" value="{{ $response->id }}">
                                 <button class="text-xs text-green-600 hover:underline">Award</button>
